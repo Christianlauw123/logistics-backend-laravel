@@ -3,11 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\District;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[Fillable(['name', 'province'])]
 class City extends Model
 {
+    use HasUuids;
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     public function districts(): HasMany {
         return $this->hasMany(District::class);
     }

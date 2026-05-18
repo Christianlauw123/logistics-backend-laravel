@@ -6,15 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-use App\Models\SubDistrict;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+#[Fillable(['name', 'deleted_at'])]
 class District extends Model
 {
+    use HasUuids;
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     public function city(): BelongsTo {
         return $this->belongsTo(City::class);
     }
 
-    public function sub_districts(): HasMany {
+    public function subDistricts(): HasMany {
         return $this->hasMany(SubDistrict::class);
     }
 }

@@ -1,29 +1,35 @@
 <?php
 
 namespace App\Repositories;
+
 use App\Models\User;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class UserRepository{
-    public function createUserWithRole(array $data, string $roleId): User{
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => bcrypt($data['password']),
-            'role_id' => $roleId
-        ]);
+class UserRepository
+{
+    public function paginate(int $perPage = 15): LengthAwarePaginator
+    {
+        return User::with('role')->orderBy('name')->paginate($perPage);
     }
 
-    public function updateUserWithRole(string $id, array $data, ?string $roleId): User{
-        $updateUser = [];
-        isset($data['name']) ? $updateUser['name'] = $data['name'] : [];
-        isset($data['email']) ? $updateUser['email'] = $data['email'] : [];
-        isset($roleId) ? $updateUser['role_id'] = $roleId: [];
-
-        return User::findOrFail($id)->update($updateUser);
+    public function findOrFail(int $id): User
+    {
+        return User::with('role')->findOrFail($id);
     }
 
+    public function create(array $data): User
+    {
+        return User::create($data);
+    }
 
-    public function findByEmail(string $email): ?User{
-        return User::where('email', $email)->first();
+    public function update(User $user, array $data): User
+    {
+        $user->update($data);
+        return $user->refresh()->load('role');
+    }
+
+    public function delete(User $user): void
+    {
+        $user->update(['deleted_at' => now()]);
     }
 }

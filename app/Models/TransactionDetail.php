@@ -3,13 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Attachment;
-use App\Models\Transaction;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+#[Fillable(['amount', 'note', 'purpose', 'status', 'transaction_id', 'deleted_at'])]
 class TransactionDetail extends Model
 {
+    use HasUuids;
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     public function transaction(): BelongsTo{
         return $this->belongsTo(Transaction::class);
     }

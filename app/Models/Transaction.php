@@ -5,21 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-use App\Models\Customer;
-use App\Models\TripPrice;
-use App\Models\User;
-use App\Models\Vehicle;
-use App\Models\BankAccount;
-use App\Models\Attachment;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[Fillable(['trip_price_amount', 'dest_address', 'customer_name', 'vehicle_plate', 'bank_account_num', 'do_number', 'do_date', 'do_actual_date', 'deleted_at'])]
 class Transaction extends Model
 {
+    use HasUuids;
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     public function customer(): BelongsTo{
         return $this->belongsTo(Customer::class);
     }
 
-    public function trip_price(): BelongsTo{
+    public function tripPrice(): BelongsTo{
         return $this->belongsTo(TripPrice::class);
     }
 
@@ -31,7 +32,7 @@ class Transaction extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
-    public function bank_account(): BelongsTo{
+    public function bankAccount(): BelongsTo{
         return $this->belongsTo(BankAccount::class);
     }
 
@@ -39,11 +40,11 @@ class Transaction extends Model
         return $this->hasMany(Attachment::class);
     }
 
-    public function origin_sub_district(): BelongsTo{
+    public function originSubDistrict(): BelongsTo{
         return $this->belongsTo(SubDistrict::class, 'origin_sub_district_id');
     }
 
-    public function dest_sub_district(): BelongsTo{
+    public function destinationSubDistrict(): BelongsTo{
         return $this->belongsTo(SubDistrict::class, 'dest_sub_district_id');
     }
 }

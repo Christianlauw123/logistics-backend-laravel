@@ -2,22 +2,48 @@
 
 namespace App\Services;
 
-use App\Repositories\UserRepository;
 use App\Models\User;
+use App\Repositories\UserRepository;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Validation\ValidationException;
 
-class UserService{
-    // Inject the Repository automatically
+class UserService
+{
     public function __construct(
-        protected UserRepository $userRepository
+        private readonly UserRepository $userRepository,
     ) {}
 
-    public function registerUser(array $data): User
+    public function list(): LengthAwarePaginator
     {
-        // 1. Default Role - Operator
-        $defaultRoleId = '';
-        // 2. Delegate database mutation to the Repository
-        $user = $this->userRepository->createUserWithRole($data, $defaultRoleId);
+        return $this->userRepository->paginate();
+    }
 
-        return $user;
+    public function findOrFail(int $id): User
+    {
+        return $this->userRepository->findOrFail($id);
+    }
+
+    public function create(array $data): User
+    {
+        return $this->userRepository->create($data);
+    }
+
+    public function update(int $id, array $data): User
+    {
+        $user = $this->userRepository->findOrFail($id);
+        return $this->userRepository->update($user, $data);
+    }
+
+    public function delete(int $id, int $requestingUserId): void
+    {
+        // Business rule: cannot delete yourself
+        if ($id === $requestingUserId) {
+            throw ValidationException::withMessages([
+                'user' => 'You cannot delete your own account.',
+            ]);
+        }
+
+        $user = $this->userRepository->findOrFail($id);
+        $this->userRepository->delete($user);
     }
 }

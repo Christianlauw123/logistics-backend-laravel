@@ -5,16 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-use App\Models\Transaction;
-use App\Models\TransactionDetail;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+#[Fillable(['amount', 'file_url', 'extracted_do_number', 'extracted_do_date', 'upload_status', 'upload_status_error', 'status', 'uploaded_at', 'transaction_id', 'transaction_detail_id'])]
 class Attachment extends Model
 {
+    use HasUuids;
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     public function transaction(): BelongsTo {
         return $this->belongsTo(Transaction::class);
     }
 
-    public function transaction_detail(): BelongsTo {
+    public function transactionDetail(): BelongsTo {
         return $this->belongsTo(TransactionDetail::class);
     }
 }
