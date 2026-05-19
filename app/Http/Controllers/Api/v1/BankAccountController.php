@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\BankAccount\ShowBankAccountRequest;
 use App\Http\Requests\BankAccount\StoreBankAccountRequest;
 use App\Http\Requests\BankAccount\UpdateBankAccountRequest;
 
@@ -36,23 +35,23 @@ class BankAccountController extends Controller
         );
     }
 
-    public function show(ShowBankAccountRequest $id): BankAccountResource
+    public function show(string $bankAccountId): BankAccountResource
     {
         return new BankAccountResource(
-            $this->bankAccountService->findOrFail($id->bank_account)
+            $this->bankAccountService->findOrFail($bankAccountId)
         );
     }
 
-    public function update(UpdateBankAccountRequest $request, string $id): BankAccountResource
+    public function update(UpdateBankAccountRequest $request, string $bankAccountId): BankAccountResource
     {
         return new BankAccountResource(
-            $this->bankAccountService->update($id, $request->validated())
+            $this->bankAccountService->update($bankAccountId, $request->validated())
         );
     }
 
-    public function destroy(ShowBankAccountRequest $id): JsonResponse
+    public function destroy(string $bankAccountId): JsonResponse
     {
-        $this->bankAccountService->delete($id->bank_account);
+        $this->bankAccountService->delete($bankAccountId);
         return response()->json(['message' => 'Deleted.']);
     }
 }

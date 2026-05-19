@@ -17,7 +17,9 @@ class SubDistrictRepository
                 - perPage: by default 15
         */
         return SubDistrict::query()
-            ->with('district')
+            ->with([
+                'district:id,name'
+            ])
             ->when(
                 isset($filters['search']),
                 fn ($q) => $q->where(function ($query) use ($filters) {
@@ -34,13 +36,14 @@ class SubDistrictRepository
                 fn ($q) => $q->withTrashed()
             )
             ->orderBy('sub_districts.name')
+            ->select('id', 'name', 'created_at', 'district_id')
             ->paginate($perPage)
             ->withQueryString(); // keeps filters in pagination links
     }
 
     public function findOrFail(string $id): SubDistrict
     {
-        return SubDistrict::with('district.city')->findOrFail($id);
+        return SubDistrict::with('district')->findOrFail($id);
     }
 
     public function create(array $data): SubDistrict

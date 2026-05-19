@@ -17,17 +17,15 @@ class UpdateTransactionRequest extends FormRequest
 
         return [
             'customer_id'           => ['sometimes', 'uuid', 'exists:customers,id'],
-            'trip_price_id'         => ['sometimes', 'uuid', 'exists:trip_prices,id'],
             'vehicle_id'            => ['sometimes', 'uuid', 'exists:vehicles,id'],
             'bank_account_id'       => ['sometimes', 'uuid', 'exists:bank_accounts,id'],
             'dest_address'          => ['sometimes', 'string', 'max:255'],
             'do_number'             => ['sometimes', 'string', "unique:transactions,do_number,{$transactionId}"],
-            'do_date'               => ['sometimes', 'date'],
-            'do_actual_date'        => ['nullable', 'date'],
-            'transaction_capacity'  => ['nullable', 'numeric', 'min:0'],
-            'transaction_items'     => ['nullable', 'string', 'max:255'],
-            'origin_sub_district_id'=> ['sometimes', 'string', 'exists:sub_districts,id'],
-            'dest_sub_district_id'  => ['sometimes', 'string', 'exists:sub_districts,id']
+            'do_actual_date'        => ['sometimes', 'date'],
+            'transaction_capacity'  => ['sometimes', 'numeric', 'min:0'],
+            'transaction_items'     => ['sometimes', 'string', 'max:255'],
+            'origin_sub_district_id'=> ['sometimes', 'uuid', 'exists:sub_districts,id'],
+            'dest_sub_district_id'  => ['sometimes', 'uuid', 'exists:sub_districts,id']
         ];
     }
 }

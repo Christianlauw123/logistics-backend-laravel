@@ -35,23 +35,23 @@ class VehicleController extends Controller
         );
     }
 
-    public function show(string $vehicle): VehicleResource
+    public function show(string $vehicleId): VehicleResource
     {
         return new VehicleResource(
-            $this->vehicleService->findOrFail($vehicle)
+            $this->vehicleService->findOrFail($vehicleId)
         );
     }
 
-    public function update(UpdateVehicleRequest $request, string $vehicle): VehicleResource
+    public function update(UpdateVehicleRequest $request, string $vehicleId): VehicleResource
     {
         return new VehicleResource(
-            $this->vehicleService->update($vehicle, $request->validated())
+            $this->vehicleService->update($vehicleId, $request->validated())
         );
     }
 
-    public function destroy(string $vehicle): JsonResponse
+    public function destroy(string $vehicleId): JsonResponse
     {
-        $this->vehicleService->delete($vehicle);
+        $this->vehicleService->delete($vehicleId);
         return response()->json(['message' => 'Deleted.']);
     }
 }

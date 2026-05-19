@@ -6,24 +6,16 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateCustomerRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return true; // auth is handled by middleware on the route
-    }
+    public function authorize(): bool { return true; }
 
     public function rules(): array
     {
-        return [
-            'name'      => ['sometimes', 'string', 'min:1'],
-            'phone'     => ['sometimes', 'string', 'min:1'],
-            'address'   => ['sometimes', 'string', 'min:1'],
-        ];
-    }
+        $customerId = $this->route('customer');
 
-    public function messages(): array
-    {
         return [
-
+            'name'     => ['sometimes', 'string', 'max:100', "unique:customers,name,{$customerId}"],
+            'phone' => ['sometimes', 'string', 'max:100'],
+            'address' => ['sometimes', 'string', 'max:100'],
         ];
     }
 }

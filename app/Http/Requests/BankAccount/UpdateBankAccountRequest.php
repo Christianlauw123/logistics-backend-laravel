@@ -11,20 +11,10 @@ class UpdateBankAccountRequest extends FormRequest
         return true; // auth is handled by middleware on the route
     }
 
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'bank_account' => $this->route('bank_account'),
-        ]);
-    }
-
     public function rules(): array
     {
         $bankAccountId = $this->route('bank_account');
-
         return [
-            'bank_account'              => ['required', 'uuid', 'exists:bank_accounts,id'],
-
             'bank_name'                 => ['sometimes', 'string', 'min:1'],
             'account_identifier_number' => ['required', 'string', "unique:bank_accounts,account_identifier_number,{$bankAccountId}"],
             'account_name'              => ['sometimes', 'string', 'min:1'],

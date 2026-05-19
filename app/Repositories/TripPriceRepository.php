@@ -13,12 +13,16 @@ class TripPriceRepository
     {
         /*
             filters
-                - search: keyword search customers.name, originSubDistrict.name. destinationSubDistrict.city name properties
+                - search: keyword search customers.name, originSubDistrict.name. destinationSubDistrict name properties
                 - customerId: specific customerId
                 - perPage: by default 15
         */
         return TripPrice::query()
-            ->with(['customer', 'originSubDistrict', 'destinationSubDistrict'])
+            ->with([
+                'customer:id,name',
+                'originSubDistrict:id,name',
+                'destinationSubDistrict:id,name'
+            ])
             ->when(
                 isset($filters['search']),
                 fn ($q) => $q->where(function ($query) use ($filters) {
@@ -29,13 +33,24 @@ class TripPriceRepository
             )
             ->when(
                 isset($filters['customerId']),
-                fn ($q) => $q->where('id', $filters['customerId'])
+                fn ($q) => $q->where('customer_id', $filters['customerId'])
+            )
+
+            ->when(
+                isset($filters['origin_sub_district_id']),
+                fn ($q) => $q->where('origin_sub_district_id', $filters['origin_sub_district_id'])
+            )
+
+            ->when(
+                isset($filters['dest_sub_district_id']),
+                fn ($q) => $q->where('dest_sub_district_id', $filters['dest_sub_district_id'])
             )
             ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
             )
             ->orderBy('trip_prices.base_price')
+            ->select('id', 'base_price', 'created_at', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id')
             ->paginate($perPage)
             ->withQueryString(); // keeps filters in pagination links
     }
@@ -44,8 +59,8 @@ class TripPriceRepository
     {
         return TripPrice::with([
             'customer',
-            'originSubDistrict.district.city',
-            'destinationSubDistrict.district.city',
+            'originSubDistrict.district',
+            'destinationSubDistrict.district',
         ])->findOrFail($id);
     }
 
@@ -57,10 +72,7 @@ class TripPriceRepository
     public function update(TripPrice $tripPrice, array $data): TripPrice
     {
         $tripPrice->update($data);
-        return $tripPrice->refresh()->load([
-            'originSubDistrict',
-            'destinationSubDistrict',
-        ]);
+        return $tripPrice->refresh();
     }
 
     public function delete(TripPrice $tripPrice): void

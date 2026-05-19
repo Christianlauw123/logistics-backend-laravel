@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Transaction;
 use App\Repositories\TransactionRepository;
+use App\Repositories\TripPriceRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
@@ -11,6 +12,7 @@ class TransactionService
 {
     public function __construct(
         private readonly TransactionRepository $transactionRepository,
+        private readonly TripPriceRepository $tripPriceRepository,
     ) {}
 
     public function list(array $filters, array $sort, int $perPage): LengthAwarePaginator
@@ -25,28 +27,45 @@ class TransactionService
 
     public function create(array $data, string $userId): Transaction
     {
-        $details = $data['details'];
+        // Check TripPrice if exists
+        $filters = [
+            'customer_id' => $data['customer_id'],
+            'origin_sub_district_id' => $data['origin_sub_district_id'],
+            'dest_sub_district_id' => $data['dest_sub_district_id']
+        ];
+        $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
+
+        if (count($tripPriceCheck->items()) <= 0) {
+            throw ValidationException::withMessages([
+                'trip_price' => 'Base price for this customer and route not exists.',
+            ]);
+        }
 
         $transactionData = collect($data)
-            ->except('details')
-            ->merge(['user_id' => $userId])
+            ->merge(['user_id' => $userId, 'trip_price_id' => $tripPriceCheck->items()[0]->id])
             ->toArray();
 
-        return $this->transactionRepository->create($transactionData, $details);
+        $transaction = $this->transactionRepository->create($transactionData);
+
+        $this->transactionRepository->prePopulateTransaction($transaction->id);
+        $this->transactionRepository->prePopulateCreateTransaction($transaction->id);
+        return $transaction;
     }
 
     public function update(string $id, array $data): Transaction
     {
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
-        // Business rule: only DRAFT transactions can be edited
+        // Business rule: only SUBMITTED transactions can be edited
         if ($transaction->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
-                'status' => 'Only DRAFT transactions can be edited.',
+                'status' => 'Only SUBMITTED transactions can be edited.',
             ]);
         }
 
-        return $this->transactionRepository->update($transaction, $data);
+        $this->transactionRepository->update($transaction, $data);
+        $this->transactionRepository->prePopulateTransaction($transaction->id);
+        return $transaction->refresh();
     }
 
     public function changeStatus(string $id, string $status): Transaction
@@ -77,10 +96,10 @@ class TransactionService
     {
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
-        // Business rule: only DRAFT can be deleted
+        // Business rule: only SUBMITTED can be deleted
         if ($transaction->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
-                'status' => 'Only DRAFT transactions can be deleted.',
+                'status' => 'Only SUBMITTED transactions can be deleted.',
             ]);
         }
 

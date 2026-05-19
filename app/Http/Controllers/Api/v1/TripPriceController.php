@@ -37,23 +37,23 @@ class TripPriceController extends Controller
         );
     }
 
-    public function show(string $tripPrice): TripPriceResource
+    public function show(string $tripPriceId): TripPriceResource
     {
         return new TripPriceResource(
-            $this->tripPriceService->findOrFail($tripPrice)
+            $this->tripPriceService->findOrFail($tripPriceId)
         );
     }
 
-    public function update(UpdateTripPriceRequest $request, string $tripPrice): TripPriceResource
+    public function update(UpdateTripPriceRequest $request, string $tripPriceId): TripPriceResource
     {
         return new TripPriceResource(
-            $this->tripPriceService->update($tripPrice, $request->validated())
+            $this->tripPriceService->update($tripPriceId, $request->validated())
         );
     }
 
-    public function destroy(string $tripPrice): JsonResponse
+    public function destroy(string $tripPriceId): JsonResponse
     {
-        $this->tripPriceService->delete($tripPrice);
+        $this->tripPriceService->delete($tripPriceId);
         return response()->json(['message' => 'Deleted.']);
     }
 }

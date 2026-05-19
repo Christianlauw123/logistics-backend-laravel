@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\District\ShowDistrictRequest;
 use App\Http\Requests\District\StoreDistrictRequest;
 use App\Http\Requests\District\UpdateDistrictRequest;
 use App\Http\Resources\DistrictResource;
@@ -34,23 +33,23 @@ class DistrictController extends Controller
         );
     }
 
-    public function show(ShowDistrictRequest $id): DistrictResource
+    public function show(string $districtId): DistrictResource
     {
         return new DistrictResource(
-            $this->districtService->findOrFail($id->district)
+            $this->districtService->findOrFail($districtId)
         );
     }
 
-    public function update(UpdateDistrictRequest $request, string $district): DistrictResource
+    public function update(UpdateDistrictRequest $request, string $districtId): DistrictResource
     {
         return new DistrictResource(
-            $this->districtService->update($district, $request->validated())
+            $this->districtService->update($districtId, $request->validated())
         );
     }
 
-    public function destroy(ShowDistrictRequest $id): JsonResponse
+    public function destroy(string $districtId): JsonResponse
     {
-        $this->districtService->delete($id->district);
+        $this->districtService->delete($districtId);
         return response()->json(['message' => 'Deleted.']);
     }
 }

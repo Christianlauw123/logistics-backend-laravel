@@ -33,29 +33,29 @@ class AttachmentController extends Controller
     /**
      * GET /api/v1/attachments/{attachment}
      */
-    public function show(string $attachment): AttachmentResource
+    public function show(string $attachmentId): AttachmentResource
     {
         return new AttachmentResource(
-            $this->attachmentService->findOrFail($attachment)
+            $this->attachmentService->findOrFail($attachmentId)
         );
     }
 
     /**
      * PATCH /api/v1/attachments/{attachment}/status
      */
-    public function updateStatus(UpdateAttachmentStatusRequest $request, string $attachment): AttachmentResource
+    public function updateStatus(UpdateAttachmentStatusRequest $request, string $attachmentId): AttachmentResource
     {
         return new AttachmentResource(
-            $this->attachmentService->changeStatus($attachment, $request->validated('status'))
+            $this->attachmentService->changeStatus($attachmentId, $request->validated('status'))
         );
     }
 
     /**
      * DELETE /api/v1/attachments/{attachment}
      */
-    public function destroy(string $attachment): JsonResponse
+    public function destroy(string $attachmentId): JsonResponse
     {
-        $this->attachmentService->delete($attachment);
+        $this->attachmentService->delete($attachmentId);
 
         return response()->json(['message' => 'Attachment deleted.']);
     }

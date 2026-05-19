@@ -19,11 +19,6 @@ class SubDistrictResource extends JsonResource
             'district'      => $this->whenLoaded('district', fn () => [
                 'id'        => $this->district->id,
                 'name'      => $this->district->name,
-
-                'city'      => $this->district->whenLoaded('city', fn () => [
-                    'id'        => $this->city->id,
-                    'name'      => $this->city->name,
-                ]),
             ]),
         ];
     }

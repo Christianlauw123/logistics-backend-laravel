@@ -35,23 +35,23 @@ class SubDistrictController extends Controller
         );
     }
 
-    public function show(string $subdistrict): SubDistrictResource
+    public function show(string $subDistrictId): SubDistrictResource
     {
         return new SubDistrictResource(
-            $this->subDistrictService->findOrFail($subdistrict)
+            $this->subDistrictService->findOrFail($subDistrictId)
         );
     }
 
-    public function update(UpdateSubDistrictRequest $request, string $subdistrict): SubDistrictResource
+    public function update(UpdateSubDistrictRequest $request, string $subDistrictId): SubDistrictResource
     {
         return new SubDistrictResource(
-            $this->subDistrictService->update($subdistrict, $request->validated())
+            $this->subDistrictService->update($subDistrictId, $request->validated())
         );
     }
 
-    public function destroy(string $subdistrict): JsonResponse
+    public function destroy(string $subDistrictId): JsonResponse
     {
-        $this->subDistrictService->delete($subdistrict);
+        $this->subDistrictService->delete($subDistrictId);
         return response()->json(['message' => 'Deleted.']);
     }
 }

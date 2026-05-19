@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Http\Requests\Transaction\UpdateTransactionRequest;
-use App\Http\Requests\Transaction\UpdateStatusRequest;
+use App\Http\Requests\Transaction\UpdateTransactionStatusRequest;
 use App\Http\Resources\TransactionResource;
 use App\Services\TransactionService;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +20,7 @@ class TransactionController extends Controller
 
     /**
      * GET /api/v1/transactions
-     * Optional filters: ?status=DRAFT&customer_id=1
+     * Optional filters: ?status=SUBMITTED&customer_id=1
      */
     public function index(Request $request): JsonResponse
     {
@@ -37,6 +37,7 @@ class TransactionController extends Controller
             'do_date_to',
             'do_actual_date_from',
             'do_actual_date_to',
+            'deleted'
         ]);
 
         $sort = [
@@ -66,39 +67,39 @@ class TransactionController extends Controller
     /**
      * GET /api/v1/transactions/{transaction}
      */
-    public function show(string $transaction): TransactionResource
+    public function show(string $transactionId): TransactionResource
     {
         return new TransactionResource(
-            $this->transactionService->findOrFail($transaction)
+            $this->transactionService->findOrFail($transactionId)
         );
     }
 
     /**
      * PUT /api/v1/transactions/{transaction}
      */
-    public function update(UpdateTransactionRequest $request, string $transaction): TransactionResource
+    public function update(UpdateTransactionRequest $request, string $transactionId): TransactionResource
     {
         return new TransactionResource(
-            $this->transactionService->update($transaction, $request->validated())
+            $this->transactionService->update($transactionId, $request->validated())
         );
     }
 
     /**
      * PATCH /api/v1/transactions/{transaction}/status
      */
-    public function updateStatus(UpdateStatusRequest $request, string $transaction): TransactionResource
+    public function updateStatus(UpdateTransactionStatusRequest $request, string $transactionId): TransactionResource
     {
         return new TransactionResource(
-            $this->transactionService->changeStatus($transaction, $request->validated('status'))
+            $this->transactionService->changeStatus($transactionId, $request->validated('status'))
         );
     }
 
     /**
      * DELETE /api/v1/transactions/{transaction}
      */
-    public function destroy(string $transaction): JsonResponse
+    public function destroy(string $transactionId): JsonResponse
     {
-        $this->transactionService->delete($transaction);
+        $this->transactionService->delete($transactionId);
         return response()->json(['message' => 'Transaction deleted.']);
     }
 }

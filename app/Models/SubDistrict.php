@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'deleted_at'])]
+#[Fillable(['name', 'deleted_at','district_id'])]
 class SubDistrict extends Model
 {
     use HasUuids, SoftDeletes;

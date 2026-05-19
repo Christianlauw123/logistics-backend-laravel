@@ -13,9 +13,10 @@ class UpdateVehicleRequest extends FormRequest
 
     public function rules(): array
     {
+        $vehicleId = $this->route('vehicle');
         return [
             'name'          => ['sometimes', 'string', 'min:1'],
-            'plate_number'  => ['sometimes', 'string', 'min:1'],
+            'plate_number'  => ['sometimes', 'string', 'min:1', "unique:vehicles,plate_number,{$vehicleId}"],
             'type'          => ['sometimes', 'string', 'min:1'],
             'capacity'      => ['sometimes', 'numeric', 'min:0.1'],
         ];

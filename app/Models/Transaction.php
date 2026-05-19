@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['trip_price_amount', 'origin_district', 'destination_district', 'dest_address', 'customer_name', 'vehicle_plate', 'bank_account_num', 'do_number', 'do_date', 'do_actual_date', 'vehicle_type', 'vehicle_capacity', 'transaction_capacity', 'transaction_items', 'deleted_at'])]
+#[Fillable(['trip_price_id', 'status', 'customer_id', 'vehicle_id', 'bank_account_id', 'origin_sub_district_id', 'dest_sub_district_id', 'user_id', 'trip_price_amount', 'origin_district', 'destination_district', 'dest_address', 'customer_name', 'vehicle_plate', 'bank_account_num', 'do_number', 'do_date', 'do_actual_date', 'vehicle_type', 'vehicle_capacity', 'transaction_capacity', 'transaction_items', 'deleted_at'])]
 class Transaction extends Model
 {
     use HasUuids, SoftDeletes;
@@ -51,6 +51,11 @@ class Transaction extends Model
 
     public function destinationSubDistrict(): BelongsTo{
         return $this->belongsTo(SubDistrict::class, 'dest_sub_district_id');
+    }
+
+    public function getDistrictLabelAttribute(SubDistrict $subDistrict)
+    {
+        return $subDistrict?->name . ', ' .$subDistrict?->district?->name;
     }
 
 }

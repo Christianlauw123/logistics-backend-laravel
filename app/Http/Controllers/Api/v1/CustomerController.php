@@ -36,23 +36,23 @@ class CustomerController extends Controller
         );
     }
 
-    public function show(string $customer): CustomerResource
+    public function show(string $customerId): CustomerResource
     {
         return new CustomerResource(
-            $this->customerService->findOrFail($customer)
+            $this->customerService->findOrFail($customerId)
         );
     }
 
-    public function update(UpdateCustomerRequest $request, string $customer): CustomerResource
+    public function update(UpdateCustomerRequest $request, string $customerId): CustomerResource
     {
         return new CustomerResource(
-            $this->customerService->update($customer, $request->validated())
+            $this->customerService->update($customerId, $request->validated())
         );
     }
 
-    public function destroy(string $customer): JsonResponse
+    public function destroy(string $customerId): JsonResponse
     {
-        $this->customerService->delete($customer);
+        $this->customerService->delete($customerId);
         return response()->json(['message' => 'Deleted.']);
     }
 }

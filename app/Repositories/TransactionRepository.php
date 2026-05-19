@@ -19,7 +19,7 @@ class TransactionRepository
     {
         /*
             filters
-                - search: keyword search customers.name, originSubDistrict.name. destinationSubDistrict.city name properties
+                - search: keyword search customers.name, originSubDistrict.name. destinationSubDistrict name properties
                 - customerId: specific customerId
                 - perPage: by default 15
         */
@@ -30,7 +30,7 @@ class TransactionRepository
             ->with([
                 'customer',
                 'originSubDistrict',
-                'destSubDistrict',
+                'destinationSubDistrict',
                 'bankAccount',
                 'vehicle',
             ])
@@ -53,6 +53,10 @@ class TransactionRepository
             ->when(
                 ! empty($filters['status']),
                 fn ($q) => $q->where('status', $filters['status'])
+            )
+            ->when(
+                isset($filters['deleted']) && $filters['deleted']==true,
+                fn ($q) => $q->withTrashed()
             )
             ->when(
                 ! empty($filters['customer_id']),
@@ -102,13 +106,18 @@ class TransactionRepository
             'user',
             'transactionDetails',
             'attachments',
+            'bankAccount',
+            'customer',
+            'vehicle',
+            'originSubDistrict',
+            'destinationSubDistrict'
         ])->findOrFail($id);
     }
 
     public function create(array $data): Transaction
     {
         $transaction = Transaction::create($data);
-        return $transaction;
+        return $transaction->refresh();
     }
 
     public function update(Transaction $transaction, array $data): Transaction
@@ -128,5 +137,27 @@ class TransactionRepository
     public function delete(Transaction $transaction): void
     {
         $transaction->update(['deleted_at' => now()]);
+    }
+
+    // Custom Function
+    public function prePopulateTransaction(string $transactionId): void {
+        $transaction = $this->findByIdOrFail($transactionId)->refresh();
+        $transaction->trip_price_amount = $transaction->tripPrice->base_price;
+        $transaction->vehicle_plate = $transaction->vehicle->plate_number;
+        $transaction->vehicle_type = $transaction->vehicle->type;
+        $transaction->vehicle_capacity = $transaction->vehicle->capacity;
+        $transaction->origin_district = $transaction->getDistrictLabelAttribute($transaction->originSubDistrict);
+        $transaction->destination_district = $transaction->getDistrictLabelAttribute($transaction->destinationSubDistrict);
+        $transaction->bank_account_num = $transaction->bankAccount->account_identifier_number;
+        $transaction->customer_name = $transaction->customer->name;
+        $transaction->save();
+    }
+
+    public function prePopulateCreateTransaction(string $transactionId): void {
+        $transaction = $this->findByIdOrFail($transactionId)->refresh();
+        // 'SUBMITTED', 'APPROVED', 'DONE', 'CANCELLED', 'REJECTED'
+        $transaction->status = 'SUBMITTED';
+        $transaction->do_date = $transaction->created_at->timezone('Asia/Jakarta');
+        $transaction->save();
     }
 }

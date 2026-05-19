@@ -16,7 +16,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'role_id'   => ['sometimes', 'uuid', 'exists:roles,id'],
             'name'      => ['sometimes', 'string', 'max:100'],
-            'email'     => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($userId)],
+            'email'     => ['sometimes', 'email', "unique:users,email,{$userId}"],
             'password'  => ['sometimes', 'string', 'min:8', 'confirmed'],
             'is_active' => ['sometimes', 'boolean'],
         ];

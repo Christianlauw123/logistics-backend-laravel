@@ -6,23 +6,14 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCustomerRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return true; // auth is handled by middleware on the route
-    }
+    public function authorize(): bool { return true; }
 
     public function rules(): array
     {
         return [
-            'name'      => ['required', 'string', 'min:1'],
-            'phone'     => ['nullable', 'string', 'min:1'],
-            'address'   => ['nullable', 'string', 'min:1'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
+            'name'     => ['required', 'string', 'max:100', 'unique:customers,name'],
+            'phone' => ['nullable', 'string', 'max:100'],
+            'address' => ['nullable', 'string', 'max:100'],
 
         ];
     }

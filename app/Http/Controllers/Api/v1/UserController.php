@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\ShowUserRequest;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
@@ -34,23 +33,23 @@ class UserController extends Controller
         );
     }
 
-    public function show(ShowUserRequest $id): UserResource
+    public function show(string $userId): UserResource
     {
         return new UserResource(
-            $this->userService->findOrFail($id->user)
+            $this->userService->findOrFail($userId)
         );
     }
 
-    public function update(UpdateUserRequest $request, ShowUserRequest $id): UserResource
+    public function update(UpdateUserRequest $request, string $userId): UserResource
     {
         return new UserResource(
-            $this->userService->update($id->user, $request->validated())
+            $this->userService->update($userId, $request->validated())
         );
     }
 
-    public function destroy(Request $request, ShowUserRequest $id): JsonResponse
+    public function destroy(Request $request, string $userId): JsonResponse
     {
-        $this->userService->delete($id->user, $request->user()?->id);
+        $this->userService->delete($userId, $request->user()?->id);
         return response()->json(['message' => 'Deleted.']);
     }
 }

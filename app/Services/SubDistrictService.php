@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\SubDistrict;
 use App\Repositories\SubDistrictRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Validation\ValidationException;
 
 class SubDistrictService
 {
@@ -24,6 +25,17 @@ class SubDistrictService
 
     public function create(array $data): SubDistrict
     {
+        $exists = SubDistrict::where('district_id', $data['district_id'])
+            ->where('name', $data['name'])
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'name' => 'Sub district already exists in this district.',
+            ]);
+        }
+
         return $this->subDistrictRepository->create($data);
     }
 

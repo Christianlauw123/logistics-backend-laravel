@@ -41,7 +41,7 @@ class CustomerRepository
     public function update(Customer $customer, array $data): Customer
     {
         $customer->update($data);
-        return $customer->refresh()->load('city');
+        return $customer->refresh();
     }
 
     public function delete(Customer $customer): void

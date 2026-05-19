@@ -34,10 +34,10 @@ class AttachmentService
     {
         $attachment = $this->attachmentRepository->findByIdOrFail($id);
 
-        // Business rule: only DRAFT Attachments can be edited
+        // Business rule: only PENDING Attachments can be edited
         if ($attachment->status !== 'PENDING') {
             throw ValidationException::withMessages([
-                'status' => 'Only DRAFT Attachments can be edited.',
+                'status' => 'Only PENDING Attachments can be edited.',
             ]);
         }
 
@@ -70,10 +70,10 @@ class AttachmentService
     {
         $attachment = $this->attachmentRepository->findByIdOrFail($id);
 
-        // Business rule: only DRAFT can be deleted
+        // Business rule: only SUBMITTED can be deleted
         if ($attachment->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
-                'status' => 'Only DRAFT Attachments can be deleted.',
+                'status' => 'Only SUBMITTED Attachments can be deleted.',
             ]);
         }
 

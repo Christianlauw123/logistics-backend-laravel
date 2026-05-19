@@ -34,10 +34,10 @@ class TransactionDetailService
     {
         $transaction = $this->transactionDetailRepository->findByIdOrFail($id);
 
-        // Business rule: only DRAFT transactions can be edited
+        // Business rule: only SUBMITTED transactions can be edited
         if ($transaction->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
-                'status' => 'Only DRAFT transactions can be edited.',
+                'status' => 'Only SUBMITTED transactions can be edited.',
             ]);
         }
 
@@ -72,10 +72,10 @@ class TransactionDetailService
     {
         $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
 
-        // Business rule: only DRAFT can be deleted
+        // Business rule: only SUBMITTED can be deleted
         if ($transactionDetail->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
-                'status' => 'Only DRAFT transactions can be deleted.',
+                'status' => 'Only SUBMITTED transactions can be deleted.',
             ]);
         }
 

@@ -12,9 +12,9 @@ class TripPriceResource extends JsonResource
         return [
             'id'            => $this->id,
             'base_price'    => $this->base_price,
-            'created_at'    => $this->created_at->toDateTimeString(),
-            'updated_at'    => $this->updated_at->toDateTimeString(),
-            'deleted_at'    => $this->deleted_at->toDateTimeString(),
+            'created_at'    => $this->created_at?->toDateTimeString(),
+            'updated_at'    => $this->updated_at?->toDateTimeString(),
+            'deleted_at'    => $this->deleted_at?->toDateTimeString(),
 
             'origin'      => $this->whenLoaded('originSubDistrict', fn () => [
                 'id'        => $this->originSubDistrict->id,
@@ -26,7 +26,7 @@ class TripPriceResource extends JsonResource
             ]),
 
             'customer'      => $this->whenLoaded('customer', fn () => [
-                'name'      => $this->district->name,
+                'name'      => $this->customer->name,
             ]),
         ];
     }

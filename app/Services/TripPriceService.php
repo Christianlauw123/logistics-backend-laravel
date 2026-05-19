@@ -32,12 +32,14 @@ class TripPriceService
     public function create(array $data): TripPrice
     {
         // Business rule: no duplicate origin-destination for same customer
-        $exists = TripPrice::where('customer_id', $data['customer_id'])
-            ->where('origin_sub_district_id', $data['origin_sub_district_id'])
-            ->where('dest_sub_district_id', $data['dest_sub_district_id'])
-            ->exists();
+        $filters = [
+            'customer_id' => $data['customer_id'],
+            'origin_sub_district_id' => $data['origin_sub_district_id'],
+            'dest_sub_district_id' => $data['dest_sub_district_id']
+        ];
+        $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
 
-        if ($exists) {
+        if (count($tripPriceCheck->items()) > 0) {
             throw ValidationException::withMessages([
                 'trip_price' => 'A price for this customer and route already exists.',
             ]);
