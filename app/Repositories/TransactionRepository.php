@@ -8,44 +8,99 @@ use Illuminate\Support\Facades\DB;
 
 class TransactionRepository
 {
-    public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    // Allowed sort columns — whitelist prevents SQL injection
+    private const SORTABLE = [
+        'do_date',
+        'do_actual_date',
+        'created_at',
+    ];
+
+    public function paginate(array $filters, array $sort = [], int $perPage = 15): LengthAwarePaginator
     {
+        /*
+            filters
+                - search: keyword search customers.name, originSubDistrict.name. destinationSubDistrict.city name properties
+                - customerId: specific customerId
+                - perPage: by default 15
+        */
+        $sortBy        = in_array($sort['by'] ?? '', self::SORTABLE) ? $sort['by'] : 'created_at';
+        $sortDirection = ($sort['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
         return Transaction::query()
-            ->with(['customer', 'vehicle', 'user', 'details', 'attachments'])
+            ->with([
+                'customer',
+                'originSubDistrict',
+                'destSubDistrict',
+                'bankAccount',
+                'vehicle',
+            ])
+            // keyword search across related names
             ->when(
-                isset($filters['status']),
+                ! empty($filters['search']),
+                fn ($q) => $q->where(function ($q) use ($filters) {
+                    $q->where('customer_name', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('vehicle_plate', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('vehicle_type', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('bank_account_num', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('dest_address', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('customer_name', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('note', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('origin_district', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('destination_district', 'ilike', "%{$filters['search']}%");
+                })
+            )
+            // exact filters
+            ->when(
+                ! empty($filters['status']),
                 fn ($q) => $q->where('status', $filters['status'])
             )
             ->when(
-                isset($filters['customer_id']),
+                ! empty($filters['customer_id']),
                 fn ($q) => $q->where('customer_id', $filters['customer_id'])
             )
-            ->latest()
-            ->paginate($perPage);
+            ->when(
+                ! empty($filters['origin_sub_district_id']),
+                fn ($q) => $q->where('origin_sub_district_id', $filters['origin_sub_district_id'])
+            )
+            ->when(
+                ! empty($filters['dest_sub_district_id']),
+                fn ($q) => $q->where('dest_sub_district_id', $filters['dest_sub_district_id'])
+            )
+            ->when(
+                ! empty($filters['bank_account_id']),
+                fn ($q) => $q->where('bank_account_id', $filters['bank_account_id'])
+            )
+            ->when(
+                ! empty($filters['vehicle_id']),
+                fn ($q) => $q->where('vehicle_id', $filters['vehicle_id'])
+            )
+            // date range filters
+            ->when(
+                ! empty($filters['do_date_from']),
+                fn ($q) => $q->whereDate('do_date', '>=', $filters['do_date_from'])
+            )
+            ->when(
+                ! empty($filters['do_date_to']),
+                fn ($q) => $q->whereDate('do_date', '<=', $filters['do_date_to'])
+            )
+            ->when(
+                ! empty($filters['do_actual_date_from']),
+                fn ($q) => $q->whereDate('do_actual_date', '>=', $filters['do_actual_date_from'])
+            )
+            ->when(
+                ! empty($filters['do_actual_date_to']),
+                fn ($q) => $q->whereDate('do_actual_date', '<=', $filters['do_actual_date_to'])
+            )
+            ->orderBy($sortBy, $sortDirection)
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
-    public function findById(int $id): ?Transaction
+    public function findByIdOrFail(string $id): Transaction
     {
         return Transaction::with([
-            'customer',
-            'tripPrice',
-            'vehicle',
-            'bankAccount',
             'user',
-            'details',
-            'attachments',
-        ])->find($id);
-    }
-
-    public function findByIdOrFail(int $id): Transaction
-    {
-        return Transaction::with([
-            'customer',
-            'tripPrice',
-            'vehicle',
-            'bankAccount',
-            'user',
-            'details',
+            'transactionDetails',
             'attachments',
         ])->findOrFail($id);
     }

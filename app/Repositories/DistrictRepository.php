@@ -4,20 +4,41 @@ namespace App\Repositories;
 
 use App\Models\District;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class DistrictRepository
 {
-    public function all(): Collection
+    public function paginate(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        return District::with('city')->orderBy('name')->get();
+        /*
+            filters
+                - search: keyword search until city properties
+                - cityId: specific cityId
+                - perPage: by default 15
+        */
+        return District::query()
+            ->with('city')
+            ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where(function ($query) use ($filters) {
+                    $query->where('name', 'ilike', "%{$filters['search']}%")
+                        ->orWhereRelation('city', 'name', 'ilike', "%{$filters['search']}%");
+                })
+            )
+            ->when(
+                isset($filters['cityId']),
+                fn ($q) => $q->where('id', $filters['cityId'])
+            )
+            ->when(
+                isset($filters['deleted']),
+                fn ($q) => $q->withTrashed()
+            )
+            ->orderBy('districts.name')
+            ->paginate($perPage)
+            ->withQueryString(); // keeps filters in pagination links
     }
 
-    public function allByCity(int $cityId): Collection
-    {
-        return District::where('city_id', $cityId)->orderBy('name')->get();
-    }
-
-    public function findOrFail(int $id): District
+    public function findOrFail(string $id): District
     {
         return District::with(['city', 'subDistricts'])->findOrFail($id);
     }

@@ -13,17 +13,17 @@ class TransactionService
         private readonly TransactionRepository $transactionRepository,
     ) {}
 
-    public function list(array $filters = []): LengthAwarePaginator
+    public function list(array $filters, array $sort, int $perPage): LengthAwarePaginator
     {
-        return $this->transactionRepository->paginate($filters);
+        return $this->transactionRepository->paginate($filters, $sort, $perPage);
     }
 
-    public function findOrFail(int $id): Transaction
+    public function findOrFail(string $id): Transaction
     {
         return $this->transactionRepository->findByIdOrFail($id);
     }
 
-    public function create(array $data, int $userId): Transaction
+    public function create(array $data, string $userId): Transaction
     {
         $details = $data['details'];
 
@@ -35,7 +35,7 @@ class TransactionService
         return $this->transactionRepository->create($transactionData, $details);
     }
 
-    public function update(int $id, array $data): Transaction
+    public function update(string $id, array $data): Transaction
     {
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
@@ -49,7 +49,7 @@ class TransactionService
         return $this->transactionRepository->update($transaction, $data);
     }
 
-    public function changeStatus(int $id, string $status): Transaction
+    public function changeStatus(string $id, string $status): Transaction
     {
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
@@ -73,7 +73,7 @@ class TransactionService
         return $this->transactionRepository->updateStatus($transaction, $status);
     }
 
-    public function delete(int $id): void
+    public function delete(string $id): void
     {
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 

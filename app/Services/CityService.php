@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\City;
 use App\Repositories\CityRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
 class CityService
@@ -13,12 +14,17 @@ class CityService
         private readonly CityRepository $cityRepository,
     ) {}
 
-    public function list(): Collection
+    public function list(array $filters, int $perPage): LengthAwarePaginator
     {
-        return $this->cityRepository->all();
+        /*
+            filters
+                - search: keyword search
+                - perPage: by default 15
+        */
+        return $this->cityRepository->paginate($filters, $perPage);
     }
 
-    public function findOrFail(int $id): City
+    public function findOrFail(string $id): City
     {
         return $this->cityRepository->findOrFail($id);
     }
@@ -28,13 +34,13 @@ class CityService
         return $this->cityRepository->create($data);
     }
 
-    public function update(int $id, array $data): City
+    public function update(string $id, array $data): City
     {
         $city = $this->cityRepository->findOrFail($id);
         return $this->cityRepository->update($city, $data);
     }
 
-    public function delete(int $id): void
+    public function delete(string $id): void
     {
         $city = $this->cityRepository->findOrFail($id);
 

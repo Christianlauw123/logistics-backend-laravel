@@ -7,14 +7,30 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class CustomerRepository
 {
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        return Customer::with('city')->orderBy('name')->paginate($perPage);
+        /*
+            filters
+                - search: keyword search
+                - perPage: by default 15
+        */
+        return Customer::query()
+            ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where('name', 'ilike', "%{$filters['search']}%")
+            )
+            ->when(
+                isset($filters['deleted']),
+                fn ($q) => $q->withTrashed()
+            )
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString(); // keeps filters in pagination links
     }
 
-    public function findOrFail(int $id): Customer
+    public function findOrFail(string $id): Customer
     {
-        return Customer::with(['city', 'bankAccounts'])->findOrFail($id);
+        return Customer::findOrFail($id);
     }
 
     public function create(array $data): Customer

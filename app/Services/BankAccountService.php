@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BankAccount;
 use App\Repositories\BankAccountRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class BankAccountService
 {
@@ -12,12 +13,17 @@ class BankAccountService
         private readonly BankAccountRepository $bankAccountRepository,
     ) {}
 
-    public function listByCustomer(int $customerId): Collection
+    public function list(array $filters, int $perPage): LengthAwarePaginator
     {
-        return $this->bankAccountRepository->allByCustomer($customerId);
+        /*
+            filters
+                - search: keyword search
+                - perPage: by default 15
+        */
+        return $this->bankAccountRepository->paginate($filters, $perPage);
     }
 
-    public function findOrFail(int $id): BankAccount
+    public function findOrFail(string $id): BankAccount
     {
         return $this->bankAccountRepository->findOrFail($id);
     }
@@ -27,13 +33,13 @@ class BankAccountService
         return $this->bankAccountRepository->create($data);
     }
 
-    public function update(int $id, array $data): BankAccount
+    public function update(string $id, array $data): BankAccount
     {
         $bankAccount = $this->bankAccountRepository->findOrFail($id);
         return $this->bankAccountRepository->update($bankAccount, $data);
     }
 
-    public function delete(int $id): void
+    public function delete(string $id): void
     {
         $bankAccount = $this->bankAccountRepository->findOrFail($id);
 

@@ -2,16 +2,15 @@
 
 namespace App\Repositories;
 
-use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class TransactionDetailRepository
 {
-    public function findById(int $id): ?Transaction
+    public function findById(string $id): ?TransactionDetail
     {
-        return Transaction::with([
+        return TransactionDetail::with([
             'customer',
             'tripPrice',
             'vehicle',
@@ -22,9 +21,9 @@ class TransactionDetailRepository
         ])->find($id);
     }
 
-    public function findByIdOrFail(int $id): Transaction
+    public function findByIdOrFail(string $id): TransactionDetail
     {
-        return Transaction::with([
+        return TransactionDetail::with([
             'customer',
             'tripPrice',
             'vehicle',
@@ -35,10 +34,9 @@ class TransactionDetailRepository
         ])->findOrFail($id);
     }
 
-    public function create(Transaction $transaction, array $details): TransactionDetail
+    public function create(array $data): TransactionDetail
     {
-        $newlyCreatedDetail = $transaction->details()->createMany($details);
-        return $newlyCreatedDetail;
+        return TransactionDetail::create($data);
     }
 
     public function update(TransactionDetail $transactionDetail, array $data): TransactionDetail

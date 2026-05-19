@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Transaction;
+namespace App\Http\Requests\TransactionDetail;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreTransactionRequest extends FormRequest
+class StoreTransactionDetailRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,21 +14,17 @@ class StoreTransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_id'    => ['required', 'integer', 'exists:customers,id'],
-            'trip_price_id'  => ['required', 'integer', 'exists:trip_prices,id'],
-            'vehicle_id'     => ['required', 'integer', 'exists:vehicles,id'],
-            'bank_account_id'=> ['required', 'integer', 'exists:bank_accounts,id'],
-            'dest_address'   => ['required', 'string', 'max:255'],
-            'do_number'      => ['required', 'string', 'unique:transactions,do_number'],
-            'do_date'        => ['required', 'date'],
-            'do_actual_date' => ['nullable', 'date'],
+            'amount'            => ['required', 'numeric', 'min:0.1'],
+            'note'              => ['required', 'string'],
+            'purpose'           => ['required', 'string'],
+            'transaction_id'    => ['required', 'uuid', 'exists:transactions,id'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'do_number.unique' => 'This DO number already exists.',
+
         ];
     }
 }

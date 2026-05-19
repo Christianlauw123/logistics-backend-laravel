@@ -3,43 +3,54 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\City\StoreCityRequest;
-use App\Http\Requests\City\UpdateCityRequest;
-use App\Services\CityService;
+
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Resources\UserResource;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-class CityController extends Controller
+class UserController extends Controller
 {
-    public function __construct(private readonly CityService $cityService) {}
+    public function __construct(private readonly UserService $userService) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->cityService->list()]);
+        /* params
+            per_page - int
+            search - string
+            deleted - boolean true / false
+        */
+        $perPage = (int) ($request->query('per_page', 15) || 15);
+        $data = $this->userService->list($request->only(['search', 'deleted']), $perPage);
+        return response()->json($data);
     }
 
-    public function store(StoreCityRequest $request): JsonResponse
+    public function store(StoreUserRequest $request): UserResource
     {
-        return response()->json(
-            ['data' => $this->cityService->create($request->validated())],
-            201
+        return new UserResource(
+            $this->userService->create($request->validated())
         );
     }
 
-    public function show(int $city): JsonResponse
+    public function show(string $user): UserResource
     {
-        return response()->json(['data' => $this->cityService->findOrFail($city)]);
-    }
-
-    public function update(UpdateCityRequest $request, int $city): JsonResponse
-    {
-        return response()->json(
-            ['data' => $this->cityService->update($city, $request->validated())]
+        return new UserResource(
+            $this->userService->findOrFail($user)
         );
     }
 
-    public function destroy(int $city): JsonResponse
+    public function update(UpdateUserRequest $request, string $user): UserResource
     {
-        $this->cityService->delete($city);
+        return new UserResource(
+            $this->userService->update($user, $request->validated())
+        );
+    }
+
+    public function destroy(Request $request, string $user): JsonResponse
+    {
+        $this->userService->delete($user, $request->user()?->id);
         return response()->json(['message' => 'Deleted.']);
     }
 }

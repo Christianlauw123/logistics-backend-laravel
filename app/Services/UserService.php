@@ -13,12 +13,12 @@ class UserService
         private readonly UserRepository $userRepository,
     ) {}
 
-    public function list(): LengthAwarePaginator
+    public function list(array $filters, int $perPage): LengthAwarePaginator
     {
-        return $this->userRepository->paginate();
+        return $this->userRepository->paginate($filters, $perPage);
     }
 
-    public function findOrFail(int $id): User
+    public function findOrFail(string $id): User
     {
         return $this->userRepository->findOrFail($id);
     }
@@ -28,13 +28,13 @@ class UserService
         return $this->userRepository->create($data);
     }
 
-    public function update(int $id, array $data): User
+    public function update(string $id, array $data): User
     {
         $user = $this->userRepository->findOrFail($id);
         return $this->userRepository->update($user, $data);
     }
 
-    public function delete(int $id, int $requestingUserId): void
+    public function delete(string $id, string $requestingUserId): void
     {
         // Business rule: cannot delete yourself
         if ($id === $requestingUserId) {

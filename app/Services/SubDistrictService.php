@@ -4,8 +4,7 @@ namespace App\Services;
 
 use App\Models\SubDistrict;
 use App\Repositories\SubDistrictRepository;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SubDistrictService
 {
@@ -13,14 +12,12 @@ class SubDistrictService
         private readonly SubDistrictRepository $subDistrictRepository,
     ) {}
 
-    public function list(?int $districtId = null): Collection
+    public function list(array $filters, int $perPage): LengthAwarePaginator
     {
-        return $districtId
-            ? $this->subDistrictRepository->allByDistrict($districtId)
-            : $this->subDistrictRepository->all();
+        return $this->subDistrictRepository->paginate($filters, $perPage);
     }
 
-    public function findOrFail(int $id): SubDistrict
+    public function findOrFail(string $id): SubDistrict
     {
         return $this->subDistrictRepository->findOrFail($id);
     }
@@ -30,18 +27,18 @@ class SubDistrictService
         return $this->subDistrictRepository->create($data);
     }
 
-    public function update(int $id, array $data): SubDistrict
+    public function update(string $id, array $data): SubDistrict
     {
         $subDistrict = $this->subDistrictRepository->findOrFail($id);
         return $this->subDistrictRepository->update($subDistrict, $data);
     }
 
-    public function delete(int $id): void
+    public function delete(string $id): void
     {
         $subDistrict = $this->subDistrictRepository->findOrFail($id);
 
         // if (
-        //     $subDistrict->originTripPrices()->exists() ||
+        //     $subDistrict->origstringripPrices()->exists() ||
         //     $subDistrict->destinationTripPrices()->exists()
         // ) {
         //     throw ValidationException::withMessages([

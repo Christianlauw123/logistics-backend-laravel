@@ -4,20 +4,42 @@ namespace App\Repositories;
 
 use App\Models\SubDistrict;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SubDistrictRepository
 {
-    public function all(): Collection
+    public function paginate(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        return SubDistrict::with('district.city')->orderBy('name')->get();
+        /*
+            filters
+                - search: keyword search sub_districts.name, district.name. district.city name properties
+                - districtId: specific districtId
+                - perPage: by default 15
+        */
+        return SubDistrict::query()
+            ->with('district.city')
+            ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where(function ($query) use ($filters) {
+                    $query->where('sub_districts.name', 'ilike', "%{$filters['search']}%")
+                          ->orWhereRelation('district', 'name', 'ilike', "%{$filters['search']}%")
+                          ->orWhereRelation('district.city', 'name', 'ilike', "%{$filters['search']}%");
+                })
+            )
+            ->when(
+                isset($filters['districtId']),
+                fn ($q) => $q->where('id', $filters['districtId'])
+            )
+            ->when(
+                isset($filters['deleted']),
+                fn ($q) => $q->withTrashed()
+            )
+            ->orderBy('sub_districts.name')
+            ->paginate($perPage)
+            ->withQueryString(); // keeps filters in pagination links
     }
 
-    public function allByDistrict(int $districtId): Collection
-    {
-        return SubDistrict::where('district_id', $districtId)->orderBy('name')->get();
-    }
-
-    public function findOrFail(int $id): SubDistrict
+    public function findOrFail(string $id): SubDistrict
     {
         return SubDistrict::with('district.city')->findOrFail($id);
     }

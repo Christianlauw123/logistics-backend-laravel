@@ -13,12 +13,12 @@ class CustomerService
         private readonly CustomerRepository $customerRepository,
     ) {}
 
-    public function list(): LengthAwarePaginator
+    public function list(array $filters, int $perPage): LengthAwarePaginator
     {
-        return $this->customerRepository->paginate();
+        return $this->customerRepository->paginate($filters, $perPage);
     }
 
-    public function findOrFail(int $id): Customer
+    public function findOrFail(string $id): Customer
     {
         return $this->customerRepository->findOrFail($id);
     }
@@ -28,13 +28,13 @@ class CustomerService
         return $this->customerRepository->create($data);
     }
 
-    public function update(int $id, array $data): Customer
+    public function update(string $id, array $data): Customer
     {
         $customer = $this->customerRepository->findOrFail($id);
         return $this->customerRepository->update($customer, $data);
     }
 
-    public function delete(int $id): void
+    public function delete(string $id): void
     {
         $customer = $this->customerRepository->findOrFail($id);
 

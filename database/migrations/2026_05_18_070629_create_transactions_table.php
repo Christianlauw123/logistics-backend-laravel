@@ -18,6 +18,15 @@ return new class extends Migration
             $table->timestampTz('deleted_at')->nullable();
 
             $table->string('vehicle_plate')->nullable();
+            $table->string('vehicle_type')->nullable();
+            $table->decimal('vehicle_capacity')->nullable();
+
+            $table->decimal('transaction_capacity')->nullable();
+            $table->text('transaction_items')->nullable();
+
+            $table->text('origin_district')->nullable();
+            $table->text('destination_district')->nullable();
+
             $table->string('bank_account_num')->nullable();
             $table->string('do_number')->nullable();
             $table->date('do_date')->nullable();
@@ -34,23 +43,23 @@ return new class extends Migration
             $table->foreignUuid('user_id')
                   ->nullable() // Keep nullable so existing users don't break during migration
                   ->constrained('users')
-                  ->nullOnDelete(); 
+                  ->nullOnDelete();
             $table->foreignUuid('customer_id')
                   ->nullable() // Keep nullable so existing users don't break during migration
                   ->constrained('customers')
-                  ->nullOnDelete(); 
+                  ->nullOnDelete();
             $table->foreignUuid('trip_price_id')
                   ->nullable() // Keep nullable so existing users don't break during migration
                   ->constrained('trip_prices')
-                  ->nullOnDelete(); 
+                  ->nullOnDelete();
             $table->foreignUuid('origin_sub_district_id')
                   ->nullable() // Keep nullable so existing users don't break during migration
                   ->constrained('sub_districts')
-                  ->nullOnDelete(); 
+                  ->nullOnDelete();
             $table->foreignUuid('dest_sub_district_id')
                   ->nullable() // Keep nullable so existing users don't break during migration
                   ->constrained('sub_districts')
-                  ->nullOnDelete(); 
+                  ->nullOnDelete();
             $table->foreignUuid('vehicle_id')
                   ->nullable() // Keep nullable so existing users don't break during migration
                   ->constrained('vehicles')

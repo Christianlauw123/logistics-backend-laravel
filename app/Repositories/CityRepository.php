@@ -3,16 +3,32 @@
 namespace App\Repositories;
 
 use App\Models\City;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CityRepository
 {
-    public function all(): Collection
+    public function paginate(array $filters, int $perPage): LengthAwarePaginator
     {
-        return City::orderBy('name')->get();
+        /*
+            filters
+                - search: keyword search
+                - perPage: by default 15
+        */
+        return City::query()
+            ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where('name', 'ilike', "%{$filters['search']}%")
+            )
+            ->when(
+                isset($filters['deleted']),
+                fn ($q) => $q->withTrashed()
+            )
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString(); // keeps filters in pagination links
     }
 
-    public function findOrFail(int $id): City
+    public function findOrFail(string $id): City
     {
         return City::with('districts')->findOrFail($id);
     }

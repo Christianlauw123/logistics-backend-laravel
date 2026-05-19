@@ -7,12 +7,31 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository
 {
-    public function paginate(int $perPage = 15): LengthAwarePaginator
+    public function paginate(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        return User::with('role')->orderBy('name')->paginate($perPage);
+        /* params
+            per_page - int
+            search - string
+            deleted - boolean true / false
+        */
+        return User::query()
+            ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where(function ($query) use ($filters) {
+                    $query->where('users.name', 'ilike', "%{$filters['search']}%")
+                          ->orWhere('users.email', 'ilike', "%{$filters['search']}%");
+                })
+            )
+            ->when(
+                isset($filters['deleted']),
+                fn ($q) => $q->withTrashed()
+            )
+            ->orderBy('trip_prices.base_price')
+            ->paginate($perPage)
+            ->withQueryString(); // keeps filters in pagination links
     }
 
-    public function findOrFail(int $id): User
+    public function findOrFail(string $id): User
     {
         return User::with('role')->findOrFail($id);
     }

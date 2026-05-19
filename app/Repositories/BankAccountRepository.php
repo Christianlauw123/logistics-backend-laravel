@@ -3,18 +3,37 @@
 namespace App\Repositories;
 
 use App\Models\BankAccount;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class BankAccountRepository
 {
-    public function allByCustomer(int $customerId): Collection
+    public function paginate(array $filters, int $perPage): LengthAwarePaginator
     {
-        return BankAccount::where('customer_id', $customerId)->get();
+        /*
+            filters
+                - search: keyword search
+                - perPage: by default 15
+        */
+        return BankAccount::query()
+            ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where('bank_name', 'ilike', "%{$filters['search']}%")
+                            ->orWhere('account_identifier_number', 'ilike', "%{$filters['search']}%")
+                            ->orWhere('account_number', 'ilike', "%{$filters['search']}%")
+                            ->orWhere('account_name', 'ilike', "%{$filters['search']}%")
+            )
+            ->when(
+                isset($filters['deleted']),
+                fn ($q) => $q->withTrashed()
+            )
+            ->orderBy('account_identifier_number')
+            ->paginate($perPage)
+            ->withQueryString(); // keeps filters in pagination links
     }
 
-    public function findOrFail(int $id): BankAccount
+    public function findOrFail(string $id): BankAccount
     {
-        return BankAccount::with('customer')->findOrFail($id);
+        return BankAccount::findOrFail($id);
     }
 
     public function create(array $data): BankAccount

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\District;
 use App\Repositories\DistrictRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class DistrictService
 {
@@ -12,14 +13,12 @@ class DistrictService
         private readonly DistrictRepository $districtRepository,
     ) {}
 
-    public function list(?int $cityId = null): Collection
+    public function list(array $filters, int $perPage): LengthAwarePaginator
     {
-        return $cityId
-            ? $this->districtRepository->allByCity($cityId)
-            : $this->districtRepository->all();
+        return $this->districtRepository->paginate($filters, $perPage);
     }
 
-    public function findOrFail(int $id): District
+    public function findOrFail(string $id): District
     {
         return $this->districtRepository->findOrFail($id);
     }
@@ -29,13 +28,13 @@ class DistrictService
         return $this->districtRepository->create($data);
     }
 
-    public function update(int $id, array $data): District
+    public function update(string $id, array $data): District
     {
         $district = $this->districtRepository->findOrFail($id);
         return $this->districtRepository->update($district, $data);
     }
 
-    public function delete(int $id): void
+    public function delete(string $id): void
     {
         $district = $this->districtRepository->findOrFail($id);
 

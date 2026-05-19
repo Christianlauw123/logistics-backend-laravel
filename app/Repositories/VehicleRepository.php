@@ -4,18 +4,32 @@ namespace App\Repositories;
 
 use App\Models\Vehicle;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class VehicleRepository
 {
-    public function all(bool $activeOnly = false): Collection
+    public function paginate(array $filters, int $perPage): LengthAwarePaginator
     {
+        /* params
+            per_page - int
+            search - string
+            deleted - boolean true / false
+        */
         return Vehicle::query()
-            ->when($activeOnly, fn ($q) => $q->where('is_active', true))
-            ->orderBy('plate_number')
-            ->get();
+            ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where('vehicles.name', 'ilike', "%{$filters['search']}%")
+            )
+            ->when(
+                isset($filters['deleted']),
+                fn ($q) => $q->withTrashed()
+            )
+            ->orderBy('vehicles.plate_number')
+            ->paginate($perPage)
+            ->withQueryString(); // keeps filters in pagination links
     }
 
-    public function findOrFail(int $id): Vehicle
+    public function findOrFail(string $id): Vehicle
     {
         return Vehicle::findOrFail($id);
     }

@@ -24,7 +24,11 @@ return new class extends Migration
             $table->foreignUuid('transaction_id')
                   ->nullable() // Keep nullable so existing users don't break during migration
                   ->constrained('transactions')
-                  ->nullOnDelete(); 
+                  ->nullOnDelete();
+            $table->foreignUuid('user_id')
+                  ->nullable() // Keep nullable so existing users don't break during migration
+                  ->constrained('users')
+                  ->nullOnDelete();
         });
     }
 

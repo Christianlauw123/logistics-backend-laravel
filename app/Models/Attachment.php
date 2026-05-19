@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['amount', 'file_url', 'extracted_do_number', 'extracted_do_date', 'upload_status', 'upload_status_error', 'status', 'uploaded_at', 'transaction_id', 'transaction_detail_id'])]
 class Attachment extends Model
 {
-    use HasUuids;
+    use HasUuids, SoftDeletes;
     protected $keyType = 'string';
     public $incrementing = false;
 
@@ -21,5 +22,9 @@ class Attachment extends Model
 
     public function transactionDetail(): BelongsTo {
         return $this->belongsTo(TransactionDetail::class);
+    }
+
+    public function user(): BelongsTo {
+        return $this->belongsTo(User::class);
     }
 }

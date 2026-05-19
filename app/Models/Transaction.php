@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['trip_price_amount', 'dest_address', 'customer_name', 'vehicle_plate', 'bank_account_num', 'do_number', 'do_date', 'do_actual_date', 'deleted_at'])]
+#[Fillable(['trip_price_amount', 'origin_district', 'destination_district', 'dest_address', 'customer_name', 'vehicle_plate', 'bank_account_num', 'do_number', 'do_date', 'do_actual_date', 'vehicle_type', 'vehicle_capacity', 'transaction_capacity', 'transaction_items', 'deleted_at'])]
 class Transaction extends Model
 {
-    use HasUuids;
+    use HasUuids, SoftDeletes;
     protected $keyType = 'string';
     public $incrementing = false;
 
@@ -36,6 +37,10 @@ class Transaction extends Model
         return $this->belongsTo(BankAccount::class);
     }
 
+    public function transactionDetails(): HasMany{
+        return $this->hasMany(TransactionDetail::class);
+    }
+
     public function attachments(): HasMany{
         return $this->hasMany(Attachment::class);
     }
@@ -47,4 +52,5 @@ class Transaction extends Model
     public function destinationSubDistrict(): BelongsTo{
         return $this->belongsTo(SubDistrict::class, 'dest_sub_district_id');
     }
+
 }

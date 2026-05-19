@@ -3,43 +3,57 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\City\StoreCityRequest;
-use App\Http\Requests\City\UpdateCityRequest;
-use App\Services\CityService;
+
+use App\Http\Requests\TripPrice\StoreTripPriceRequest;
+use App\Http\Requests\TripPrice\UpdateTripPriceRequest;
+use App\Http\Resources\TripPriceResource;
+use App\Services\TripPriceService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-class CityController extends Controller
+class TripPriceController extends Controller
 {
-    public function __construct(private readonly CityService $cityService) {}
+    public function __construct(private readonly TripPriceService $tripPriceService) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->cityService->list()]);
+        /* params
+            per_page - int
+            search - string
+            customerId - uuid
+            isActive - boolean
+            deleted - boolean true / false
+        */
+        $perPage = (int) ($request->query('per_page', 15) || 15);
+
+        $data = $this->tripPriceService->list($request->only(['search', 'customerId', 'isActive', 'deleted']), $perPage);
+        return response()->json($data);
     }
 
-    public function store(StoreCityRequest $request): JsonResponse
+    public function store(StoreTripPriceRequest $request): TripPriceResource
     {
-        return response()->json(
-            ['data' => $this->cityService->create($request->validated())],
-            201
+        return new TripPriceResource(
+            $this->tripPriceService->create($request->validated())
         );
     }
 
-    public function show(int $city): JsonResponse
+    public function show(string $tripPrice): TripPriceResource
     {
-        return response()->json(['data' => $this->cityService->findOrFail($city)]);
-    }
-
-    public function update(UpdateCityRequest $request, int $city): JsonResponse
-    {
-        return response()->json(
-            ['data' => $this->cityService->update($city, $request->validated())]
+        return new TripPriceResource(
+            $this->tripPriceService->findOrFail($tripPrice)
         );
     }
 
-    public function destroy(int $city): JsonResponse
+    public function update(UpdateTripPriceRequest $request, string $tripPrice): TripPriceResource
     {
-        $this->cityService->delete($city);
+        return new TripPriceResource(
+            $this->tripPriceService->update($tripPrice, $request->validated())
+        );
+    }
+
+    public function destroy(string $tripPrice): JsonResponse
+    {
+        $this->tripPriceService->delete($tripPrice);
         return response()->json(['message' => 'Deleted.']);
     }
 }

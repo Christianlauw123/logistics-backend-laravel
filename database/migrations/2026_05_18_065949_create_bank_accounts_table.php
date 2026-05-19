@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('bank_accounts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('bankName')->nullable();
-            $table->string('accountIdentifierNumber')->nullable();
-            $table->string('accountNumber')->nullable();
-            $table->string('accountName')->nullable();
+            $table->string('bank_name')->nullable();
+            $table->string('account_identifier_number');
+            $table->string('account_number')->nullable();
+            $table->string('account_name')->nullable();
             $table->timestampsTz();
             $table->timestampTz('deleted_at')->nullable();
         });

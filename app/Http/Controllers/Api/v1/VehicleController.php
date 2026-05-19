@@ -3,43 +3,55 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\City\StoreCityRequest;
-use App\Http\Requests\City\UpdateCityRequest;
-use App\Services\CityService;
+
+use App\Http\Requests\Vehicle\StoreVehicleRequest;
+use App\Http\Requests\Vehicle\UpdateVehicleRequest;
+use App\Http\Resources\VehicleResource;
+use App\Services\VehicleService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-class CityController extends Controller
+class VehicleController extends Controller
 {
-    public function __construct(private readonly CityService $cityService) {}
+    public function __construct(private readonly VehicleService $vehicleService) {}
 
-    public function index(): JsonResponse
+
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->cityService->list()]);
+        /* params
+            per_page - int
+            search - string
+            deleted - boolean true / false
+        */
+        $perPage = (int) ($request->query('per_page', 15) || 15);
+        $data = $this->vehicleService->list($request->only(['search', 'deleted']), $perPage);
+        return response()->json($data);
     }
 
-    public function store(StoreCityRequest $request): JsonResponse
+    public function store(StoreVehicleRequest $request): VehicleResource
     {
-        return response()->json(
-            ['data' => $this->cityService->create($request->validated())],
-            201
+        return new VehicleResource(
+            $this->vehicleService->create($request->validated())
         );
     }
 
-    public function show(int $city): JsonResponse
+    public function show(string $vehicle): VehicleResource
     {
-        return response()->json(['data' => $this->cityService->findOrFail($city)]);
-    }
-
-    public function update(UpdateCityRequest $request, int $city): JsonResponse
-    {
-        return response()->json(
-            ['data' => $this->cityService->update($city, $request->validated())]
+        return new VehicleResource(
+            $this->vehicleService->findOrFail($vehicle)
         );
     }
 
-    public function destroy(int $city): JsonResponse
+    public function update(UpdateVehicleRequest $request, string $vehicle): VehicleResource
     {
-        $this->cityService->delete($city);
+        return new VehicleResource(
+            $this->vehicleService->update($vehicle, $request->validated())
+        );
+    }
+
+    public function destroy(string $vehicle): JsonResponse
+    {
+        $this->vehicleService->delete($vehicle);
         return response()->json(['message' => 'Deleted.']);
     }
 }

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Transaction;
+namespace App\Http\Requests\TransactionDetail;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateStatusRequest extends FormRequest
+class UpdateTransactionDetailStatusRequest extends FormRequest
 {
     public function authorize(): bool
     {

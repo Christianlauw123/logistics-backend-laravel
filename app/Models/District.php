@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['name', 'deleted_at'])]
 class District extends Model
 {
-    use HasUuids;
+    use HasUuids, SoftDeletes;
     protected $keyType = 'string';
     public $incrementing = false;
 

@@ -3,43 +3,55 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\City\StoreCityRequest;
-use App\Http\Requests\City\UpdateCityRequest;
-use App\Services\CityService;
+use App\Http\Requests\District\StoreDistrictRequest;
+use App\Http\Requests\District\UpdateDistrictRequest;
+use App\Http\Resources\DistrictResource;
+use App\Services\DistrictService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class CityController extends Controller
+class DistrictController extends Controller
 {
-    public function __construct(private readonly CityService $cityService) {}
+    public function __construct(private readonly DistrictService $districtService) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(['data' => $this->cityService->list()]);
+        /* params
+            per_page - int
+            search - string
+            cityId - uuid
+            deleted - boolean true / false
+        */
+        $perPage = (int) ($request->query('per_page', 15) || 15);
+        $data = $this->districtService->list($request->only(['search', 'cityId', 'deleted']), $perPage);
+        return response()->json($data);
     }
 
-    public function store(StoreCityRequest $request): JsonResponse
+    public function store(StoreDistrictRequest $request): DistrictResource
     {
-        return response()->json(
-            ['data' => $this->cityService->create($request->validated())],
-            201
+        return new DistrictResource(
+            $this->districtService->create($request->validated())
         );
     }
 
-    public function show(int $city): JsonResponse
+    public function show(string $district): DistrictResource
     {
-        return response()->json(['data' => $this->cityService->findOrFail($city)]);
-    }
-
-    public function update(UpdateCityRequest $request, int $city): JsonResponse
-    {
-        return response()->json(
-            ['data' => $this->cityService->update($city, $request->validated())]
+        return new DistrictResource(
+            $this->districtService->findOrFail($district)
         );
     }
 
-    public function destroy(int $city): JsonResponse
+    public function update(UpdateDistrictRequest $request, string $district): DistrictResource
     {
-        $this->cityService->delete($city);
+        return new DistrictResource(
+            $this->districtService->update($district, $request->validated())
+        );
+    }
+
+    public function destroy(string $district): JsonResponse
+    {
+        $this->districtService->delete($district);
         return response()->json(['message' => 'Deleted.']);
     }
 }

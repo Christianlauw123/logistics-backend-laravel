@@ -3,86 +3,60 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Transaction\StoreTransactionRequest;
-use App\Http\Requests\Transaction\UpdateTransactionRequest;
-use App\Http\Requests\Transaction\UpdateStatusRequest;
-use App\Http\Resources\Transaction\TransactionResource;
-use App\Services\TransactionService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class TransactionController extends Controller
+use App\Http\Requests\Attachment\UpdateAttachmentStatusRequest;
+use App\Http\Requests\Attachment\StoreAttachmentRequest;
+
+use App\Http\Resources\AttachmentResource;
+use App\Services\AttachmentService;
+use Illuminate\Http\JsonResponse;
+
+class AttachmentController extends Controller
 {
     public function __construct(
-        private readonly TransactionService $transactionService,
+        private readonly AttachmentService $attachmentService,
     ) {}
 
     /**
-     * GET /api/v1/transactions
-     * Optional filters: ?status=DRAFT&customer_id=1
+     * POST /api/v1/Attachments
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function store(StoreAttachmentRequest $request): AttachmentResource
     {
-        $transactions = $this->transactionService->list(
-            $request->only(['status', 'customer_id'])
-        );
-
-        return TransactionResource::collection($transactions);
-    }
-
-    /**
-     * POST /api/v1/transactions
-     */
-    public function store(StoreTransactionRequest $request): JsonResponse
-    {
-        $transaction = $this->transactionService->create(
-            $request->validated(),
-            $request->user()->id,
-        );
-
-        return (new TransactionResource($transaction))
-            ->response()
-            ->setStatusCode(201);
-    }
-
-    /**
-     * GET /api/v1/transactions/{transaction}
-     */
-    public function show(int $transaction): TransactionResource
-    {
-        return new TransactionResource(
-            $this->transactionService->findOrFail($transaction)
+        return new AttachmentResource(
+            $this->attachmentService->create(
+                $request->validated(),
+                $request->user()?->id,
+            )
         );
     }
 
     /**
-     * PUT /api/v1/transactions/{transaction}
+     * GET /api/v1/attachments/{attachment}
      */
-    public function update(UpdateTransactionRequest $request, int $transaction): TransactionResource
+    public function show(string $attachment): AttachmentResource
     {
-        return new TransactionResource(
-            $this->transactionService->update($transaction, $request->validated())
+        return new AttachmentResource(
+            $this->attachmentService->findOrFail($attachment)
         );
     }
 
     /**
-     * PATCH /api/v1/transactions/{transaction}/status
+     * PATCH /api/v1/attachments/{attachment}/status
      */
-    public function updateStatus(UpdateStatusRequest $request, int $transaction): TransactionResource
+    public function updateStatus(UpdateAttachmentStatusRequest $request, string $attachment): AttachmentResource
     {
-        return new TransactionResource(
-            $this->transactionService->changeStatus($transaction, $request->validated('status'))
+        return new AttachmentResource(
+            $this->attachmentService->changeStatus($attachment, $request->validated('status'))
         );
     }
 
     /**
-     * DELETE /api/v1/transactions/{transaction}
+     * DELETE /api/v1/attachments/{attachment}
      */
-    public function destroy(int $transaction): JsonResponse
+    public function destroy(string $attachment): JsonResponse
     {
-        $this->transactionService->delete($transaction);
+        $this->attachmentService->delete($attachment);
 
-        return response()->json(['message' => 'Transaction deleted.']);
+        return response()->json(['message' => 'Attachment deleted.']);
     }
 }

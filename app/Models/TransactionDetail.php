@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['amount', 'note', 'purpose', 'status', 'transaction_id', 'deleted_at'])]
 class TransactionDetail extends Model
 {
-    use HasUuids;
+    use HasUuids, SoftDeletes;
     protected $keyType = 'string';
     public $incrementing = false;
 
@@ -21,5 +22,9 @@ class TransactionDetail extends Model
 
     public function attachment(): HasOne{
         return $this->hasOne(Attachment::class);
+    }
+
+    public function user(): BelongsTo {
+        return $this->belongsTo(User::class);
     }
 }

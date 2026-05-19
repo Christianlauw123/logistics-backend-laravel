@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['bankName', 'accountIdentifierNumber', 'accountNumber', 'accountName', 'deleted_at'])]
+#[Fillable(['bank_name', 'account_identifier_number', 'account_number', 'account_name', 'deleted_at'])]
 class BankAccount extends Model
 {
-    use HasUuids;
+    use HasUuids, SoftDeletes;
     protected $keyType = 'string';
     public $incrementing = false;
 
@@ -18,6 +19,3 @@ class BankAccount extends Model
         return $this->hasMany(Transaction::class);
     }
 }
-
-
-
