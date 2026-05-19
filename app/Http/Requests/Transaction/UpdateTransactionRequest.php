@@ -26,6 +26,8 @@ class UpdateTransactionRequest extends FormRequest
             'do_actual_date'        => ['nullable', 'date'],
             'transaction_capacity'  => ['nullable', 'numeric', 'min:0'],
             'transaction_items'     => ['nullable', 'string', 'max:255'],
+            'origin_sub_district_id'=> ['sometimes', 'string', 'exists:sub_districts,id'],
+            'dest_sub_district_id'  => ['sometimes', 'string', 'exists:sub_districts,id']
         ];
     }
 }

@@ -15,7 +15,7 @@ class StoreDistrictRequest extends FormRequest
     {
         return [
             'name'      => ['required', 'string', 'min:1'],
-            'city_id'   => ['sometimes', 'uuid', 'exists:cities,id'],
+            // 'city_id'   => ['sometimes', 'uuid', 'exists:cities,id'],
         ];
     }
 

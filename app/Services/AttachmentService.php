@@ -35,7 +35,7 @@ class AttachmentService
         $attachment = $this->attachmentRepository->findByIdOrFail($id);
 
         // Business rule: only DRAFT Attachments can be edited
-        if ($attachment->status !== 'DRAFT') {
+        if ($attachment->status !== 'PENDING') {
             throw ValidationException::withMessages([
                 'status' => 'Only DRAFT Attachments can be edited.',
             ]);

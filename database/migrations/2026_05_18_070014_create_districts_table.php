@@ -17,10 +17,10 @@ return new class extends Migration
             $table->timestampsTz();
             $table->timestampTz('deleted_at')->nullable();
 
-            $table->foreignUuid('city_id')
-                  ->nullable() // Keep nullable so existing users don't break during migration
-                  ->constrained('cities')
-                  ->nullOnDelete();
+            // $table->foreignUuid('city_id')
+            //       ->nullable() // Keep nullable so existing users don't break during migration
+            //       ->constrained('cities')
+            //       ->nullOnDelete();
         });
     }
 

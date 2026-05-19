@@ -19,9 +19,9 @@ class TripPriceService
         return $this->tripPriceRepository->paginate($filters, $perPage);
     }
 
-    public function listByCustomer(string $customerId): Collection
+    public function listByCustomer(string $customerId): LengthAwarePaginator
     {
-        return $this->tripPriceRepository->allByCustomer($customerId);
+        return $this->tripPriceRepository->paginate(['customerId' => $customerId]);
     }
 
     public function findOrFail(string $id): TripPrice

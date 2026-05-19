@@ -20,7 +20,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::apiResource('transactions', TransactionController::class)->names('transactions.v1');
     Route::apiResource('attachments', AttachmentController::class)->names('attachments.v1');
     Route::apiResource('bank_accounts', BankAccountController::class)->names('bank_accounts.v1');
-    Route::apiResource('cities', CityController::class)->names('cities.v1');
+    // Route::apiResource('cities', CityController::class)->names('cities.v1');
     Route::apiResource('customers', CustomerController::class)->names('customers.v1');
     Route::apiResource('districts', DistrictController::class)->names('customers.v1');
     Route::apiResource('sub_districts', SubDistrictController::class)->names('sub_districts.v1');

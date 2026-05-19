@@ -20,11 +20,10 @@ class DistrictController extends Controller
         /* params
             per_page - int
             search - string
-            cityId - uuid
             deleted - boolean true / false
         */
         $perPage = (int) ($request->query('per_page', 15) || 15);
-        $data = $this->districtService->list($request->only(['search', 'cityId', 'deleted']), $perPage);
+        $data = $this->districtService->list($request->only(['search', 'deleted']), $perPage);
         return response()->json($data);
     }
 

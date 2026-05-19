@@ -40,13 +40,6 @@ class TripPriceRepository
             ->withQueryString(); // keeps filters in pagination links
     }
 
-    public function allByCustomer(string $customerId): Collection
-    {
-        return TripPrice::with(['originSubDistrict', 'destinationSubDistrict'])
-            ->where('customer_id', $customerId)
-            ->get();
-    }
-
     public function findOrFail(string $id): TripPrice
     {
         return TripPrice::with([

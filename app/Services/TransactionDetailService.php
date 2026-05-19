@@ -35,7 +35,7 @@ class TransactionDetailService
         $transaction = $this->transactionDetailRepository->findByIdOrFail($id);
 
         // Business rule: only DRAFT transactions can be edited
-        if ($transaction->status !== 'DRAFT') {
+        if ($transaction->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
                 'status' => 'Only DRAFT transactions can be edited.',
             ]);
