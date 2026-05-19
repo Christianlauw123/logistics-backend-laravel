@@ -12,25 +12,18 @@ class DistrictRepository
     {
         /*
             filters
-                - search: keyword search until city properties
-                - cityId: specific cityId
+                - search: keyword search
                 - perPage: by default 15
         */
         return District::query()
-            ->with('city')
             ->when(
                 isset($filters['search']),
                 fn ($q) => $q->where(function ($query) use ($filters) {
-                    $query->where('name', 'ilike', "%{$filters['search']}%")
-                        ->orWhereRelation('city', 'name', 'ilike', "%{$filters['search']}%");
+                    $query->where('name', 'ilike', "%{$filters['search']}%");
                 })
             )
             ->when(
-                isset($filters['cityId']),
-                fn ($q) => $q->where('id', $filters['cityId'])
-            )
-            ->when(
-                isset($filters['deleted']),
+                isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
             )
             ->orderBy('districts.name')
@@ -40,7 +33,7 @@ class DistrictRepository
 
     public function findOrFail(string $id): District
     {
-        return District::with(['city', 'subDistricts'])->findOrFail($id);
+        return District::with('subDistricts')->findOrFail($id);
     }
 
     public function create(array $data): District

@@ -16,7 +16,7 @@ class TransactionResource extends JsonResource
             'dest_address'          => $this->dest_address,
             'do_date'               => $this->do_date?->toDateString(),
             'do_actual_date'        => $this->do_actual_date?->toDateString(),
-            'created_at'            => $this->created_at->toDateTimeString(),
+            'created_at'            => $this->created_at?->toDateTimeString(),
             'vehicle_plate'         => $this->vehicle_plate,
             'vehicle_type'          => $this->vehicle_type,
             'vehicle_capacity'      => $this->vehicle_capacity,

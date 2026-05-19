@@ -23,10 +23,11 @@ class BankAccountRepository
                             ->orWhere('account_name', 'ilike', "%{$filters['search']}%")
             )
             ->when(
-                isset($filters['deleted']),
+                isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
             )
             ->orderBy('account_identifier_number')
+            ->select('id', 'bank_name', 'account_identifier_number', 'created_at')
             ->paginate($perPage)
             ->withQueryString(); // keeps filters in pagination links
     }

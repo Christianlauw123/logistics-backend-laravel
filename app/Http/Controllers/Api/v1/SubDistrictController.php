@@ -23,7 +23,7 @@ class SubDistrictController extends Controller
             districtId - uuid
             deleted - boolean true / false
         */
-        $perPage = (int) ($request->query('per_page', 15) || 15);
+        $perPage = (int) ($request->query('per_page', 15) ?? 15);
         $data = $this->subDistrictService->list($request->only(['search', 'districtId', 'deleted']), $perPage);
         return response()->json($data);
     }

@@ -16,6 +16,7 @@ class AuthController extends Controller
         $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required', 'string'],
+            'device_type' => ['required', 'in:web,mobile'],
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -26,7 +27,31 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $deviceType = $request->device_type;
+
+        // 🔥 LIMIT RULES
+        if ($deviceType === 'web') {
+            // max 1 token
+            if ($user->tokens()->where('name', 'web')->exists()) {
+                $user->tokens()->where('name', 'web')->delete();
+            }
+        }
+
+        if ($deviceType === 'mobile') {
+            // max 2 tokens
+            $mobileTokens = $user->tokens()->where('name', 'mobile')->count();
+
+            if ($mobileTokens >= 2) {
+                // delete oldest mobile token
+                $user->tokens()
+                    ->where('name', 'mobile')
+                    ->oldest()
+                    ->first()
+                    ?->delete();
+            }
+        }
+
+        $token = $user->createToken($deviceType)->plainTextToken;
 
         return response()->json(['token' => $token]);
     }

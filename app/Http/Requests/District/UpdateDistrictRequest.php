@@ -3,7 +3,7 @@
 namespace App\Http\Requests\District;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Validation\Rule;
 class UpdateDistrictRequest extends FormRequest
 {
     public function authorize(): bool
@@ -13,8 +13,9 @@ class UpdateDistrictRequest extends FormRequest
 
     public function rules(): array
     {
+        $districtId = $this->route('district');
         return [
-            'name'      => ['sometimes', 'string', 'min:1'],
+            'name'      => ['sometimes', 'string', 'min:1', "unique:districts,name,{$districtId}"],
             // 'city_id'   => ['sometimes', 'uuid', 'exists:cities,id'],
         ];
     }

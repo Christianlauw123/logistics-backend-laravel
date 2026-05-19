@@ -21,7 +21,7 @@ class VehicleRepository
                 fn ($q) => $q->where('vehicles.name', 'ilike', "%{$filters['search']}%")
             )
             ->when(
-                isset($filters['deleted']),
+                isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
             )
             ->orderBy('vehicles.plate_number')

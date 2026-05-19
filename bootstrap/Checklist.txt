@@ -1,0 +1,17 @@
+x City
+
+Attachment
+
+Customer
+District
+SubDistrict
+Transaction
+TransactionDetail
+TripPrice
+
+Vehicle
+
+Auth
+User
+BankAccount
+

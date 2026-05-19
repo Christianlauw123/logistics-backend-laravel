@@ -5,8 +5,9 @@ use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -28,9 +29,23 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-        $exceptions->render(function (ModelNotFoundException $e, $request) {
-            if ($request->expectsJson()) {
-                return response()->json(['message' => 'Resource not found.'], 404);
-            }
+        $exceptions->render(function (NotFoundHttpException  $e) {
+            return response()->json([
+                'message' => 'Resource not found.',
+                'errors'  => [
+                    'Resource not found.'
+                ]
+            ], 404);
         });
+
+        $exceptions->render(function (MethodNotAllowedHttpException  $e) {
+            return response()->json([
+                'message' => 'Unsupported',
+                'errors'  => [
+                    'Unsupported.'
+                ]
+            ], 404);
+        });
+
+
     })->create();

@@ -14,7 +14,7 @@ class StoreDistrictRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'      => ['required', 'string', 'min:1'],
+            'name'      => ['required', 'string', 'min:1', 'unique:districts,name'],
             // 'city_id'   => ['sometimes', 'uuid', 'exists:cities,id'],
         ];
     }

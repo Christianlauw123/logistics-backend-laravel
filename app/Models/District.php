@@ -17,9 +17,9 @@ class District extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    public function city(): BelongsTo {
-        return $this->belongsTo(City::class);
-    }
+    // public function city(): BelongsTo {
+    //     return $this->belongsTo(City::class);
+    // }
 
     public function subDistricts(): HasMany {
         return $this->hasMany(SubDistrict::class);

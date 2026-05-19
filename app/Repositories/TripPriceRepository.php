@@ -32,7 +32,7 @@ class TripPriceRepository
                 fn ($q) => $q->where('id', $filters['customerId'])
             )
             ->when(
-                isset($filters['deleted']),
+                isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
             )
             ->orderBy('trip_prices.base_price')

@@ -12,18 +12,17 @@ class SubDistrictRepository
     {
         /*
             filters
-                - search: keyword search sub_districts.name, district.name. district.city name properties
+                - search: keyword search sub_districts.name, district.name properties
                 - districtId: specific districtId
                 - perPage: by default 15
         */
         return SubDistrict::query()
-            ->with('district.city')
+            ->with('district')
             ->when(
                 isset($filters['search']),
                 fn ($q) => $q->where(function ($query) use ($filters) {
                     $query->where('sub_districts.name', 'ilike', "%{$filters['search']}%")
-                          ->orWhereRelation('district', 'name', 'ilike', "%{$filters['search']}%")
-                          ->orWhereRelation('district.city', 'name', 'ilike', "%{$filters['search']}%");
+                          ->orWhereRelation('district', 'name', 'ilike', "%{$filters['search']}%");
                 })
             )
             ->when(
@@ -31,7 +30,7 @@ class SubDistrictRepository
                 fn ($q) => $q->where('id', $filters['districtId'])
             )
             ->when(
-                isset($filters['deleted']),
+                isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
             )
             ->orderBy('sub_districts.name')

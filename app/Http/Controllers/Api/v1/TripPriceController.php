@@ -24,7 +24,7 @@ class TripPriceController extends Controller
             isActive - boolean
             deleted - boolean true / false
         */
-        $perPage = (int) ($request->query('per_page', 15) || 15);
+        $perPage = (int) ($request->query('per_page', 15) ?? 15);
 
         $data = $this->tripPriceService->list($request->only(['search', 'customerId', 'isActive', 'deleted']), $perPage);
         return response()->json($data);

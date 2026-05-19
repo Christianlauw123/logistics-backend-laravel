@@ -13,12 +13,12 @@ class DistrictResource extends JsonResource
             'id'            => $this->id,
             'name'          => $this->name,
             'created_at'    => $this->created_at->toDateTimeString(),
-            'updated_at'    => $this->updated_at->toDateTimeString(),
-            'deleted_at'    => $this->deleted_at->toDateTimeString(),
-            'city'          => $this->whenLoaded('city', fn () => [
-                'id'        => $this->city->id,
-                'name'      => $this->city->name,
-            ]),
+            'updated_at'    => $this->updated_at?->toDateTimeString(),
+            'deleted_at'    => $this->deleted_at?->toDateTimeString(),
+            // 'city'          => $this->whenLoaded('city', fn () => [
+            //     'id'        => $this->city->id,
+            //     'name'      => $this->city->name,
+            // ]),
         ];
     }
 }

@@ -15,7 +15,7 @@ class City extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    public function districts(): HasMany {
-        return $this->hasMany(District::class);
-    }
+    // public function districts(): HasMany {
+    //     return $this->hasMany(District::class);
+    // }
 }

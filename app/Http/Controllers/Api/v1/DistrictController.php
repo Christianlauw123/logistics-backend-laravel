@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\District\ShowDistrictRequest;
 use App\Http\Requests\District\StoreDistrictRequest;
 use App\Http\Requests\District\UpdateDistrictRequest;
 use App\Http\Resources\DistrictResource;
 use App\Services\DistrictService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class DistrictController extends Controller
 {
@@ -22,7 +22,7 @@ class DistrictController extends Controller
             search - string
             deleted - boolean true / false
         */
-        $perPage = (int) ($request->query('per_page', 15) || 15);
+        $perPage = (int) ($request->query('per_page', 15) ?? 15);
         $data = $this->districtService->list($request->only(['search', 'deleted']), $perPage);
         return response()->json($data);
     }
@@ -34,10 +34,10 @@ class DistrictController extends Controller
         );
     }
 
-    public function show(string $district): DistrictResource
+    public function show(ShowDistrictRequest $id): DistrictResource
     {
         return new DistrictResource(
-            $this->districtService->findOrFail($district)
+            $this->districtService->findOrFail($id->district)
         );
     }
 
@@ -48,9 +48,9 @@ class DistrictController extends Controller
         );
     }
 
-    public function destroy(string $district): JsonResponse
+    public function destroy(ShowDistrictRequest $id): JsonResponse
     {
-        $this->districtService->delete($district);
+        $this->districtService->delete($id->district);
         return response()->json(['message' => 'Deleted.']);
     }
 }

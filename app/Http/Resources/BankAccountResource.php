@@ -15,8 +15,8 @@ class BankAccountResource extends JsonResource
             'account_identifier_number' => $this->account_identifier_number,
             'account_number'            => $this->account_number,
             'created_at'                => $this->created_at->toDateTimeString(),
-            'updated_at'                => $this->updated_at->toDateTimeString(),
-            'deleted_at'                => $this->deleted_at->toDateTimeString(),
+            'updated_at'                => $this->updated_at?->toDateTimeString(),
+            'deleted_at'                => $this->deleted_at?->toDateTimeString(),
         ];
     }
 }

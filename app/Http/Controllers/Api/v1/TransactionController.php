@@ -44,7 +44,7 @@ class TransactionController extends Controller
             'direction' => $request->query('sort_dir', 'desc'),
         ];
 
-        $perPage = (int) $request->query('per_page', 15);
+        $perPage = (int) ($request->query('per_page', 15) ?? 15);
 
         $data = $this->transactionService->list($filters, $sort, $perPage);
         return response()->json($data);
