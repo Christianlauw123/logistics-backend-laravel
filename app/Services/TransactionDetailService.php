@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\TransactionDetail;
 use App\Repositories\TransactionDetailRepository;
+use App\Repositories\TransactionRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
@@ -11,6 +12,7 @@ class TransactionDetailService
 {
     public function __construct(
         private readonly TransactionDetailRepository $transactionDetailRepository,
+        private readonly TransactionRepository $transactionRepository,
     ) {}
 
     public function findOrFail(string $id): TransactionDetail
@@ -20,33 +22,46 @@ class TransactionDetailService
 
     public function create(array $data, string $userId): TransactionDetail
     {
-        $details = $data['details'];
-
-        $transactionData = collect($data)
-            ->except('details')
+        $transactionDetailData = collect($data)
             ->merge(['user_id' => $userId])
             ->toArray();
 
-        return $this->transactionDetailRepository->create($transactionData, $details);
+        // Check all submitted if added with this one is exceed or not
+        $detailCreationAllowed = $this->transactionRepository->preCalculateCurrentTransactionTotal($transactionDetailData['transaction_id'], $transactionDetailData['amount']);
+        if(!$detailCreationAllowed['state']){
+            throw ValidationException::withMessages([
+                'amount' => 'Jumlah Amount Baru melebihi biaya trip maksimal '.$detailCreationAllowed['trip_price_amount'],
+            ]);
+        }
+        $transactionDetail = $this->transactionDetailRepository->create($transactionDetailData);
+        $this->transactionDetailRepository->prePopulateCreateTransactionDetail($transactionDetail->id);
+        return $transactionDetail->refresh();
     }
 
     public function update(string $id, array $data): TransactionDetail
     {
-        $transaction = $this->transactionDetailRepository->findByIdOrFail($id);
+        $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
 
         // Business rule: only SUBMITTED transactions can be edited
-        if ($transaction->status !== 'SUBMITTED') {
+        if ($transactionDetail->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
                 'status' => 'Only SUBMITTED transactions can be edited.',
             ]);
         }
 
-        return $this->transactionDetailRepository->update($transaction, $data);
+        $detailCreationAllowed = $this->transactionRepository->preCalculateCurrentTransactionTotal($id, -$transactionDetail->amount + $data['amount']);
+        if(!$detailCreationAllowed['state']){
+            throw ValidationException::withMessages([
+                'amount' => 'Jumlah Amount Baru melebihi biaya trip maksimal '.$detailCreationAllowed['trip_price_amount'],
+            ]);
+        }
+
+        return $this->transactionDetailRepository->update($transactionDetail, $data);
     }
 
     public function changeStatus(string $id, string $status): TransactionDetail
     {
-        $transaction = $this->transactionDetailRepository->findByIdOrFail($id);
+        $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
 
         // Business rule: status must follow order
         $allowedTransitions = [
@@ -57,7 +72,7 @@ class TransactionDetailService
             'REJECTED'  => [],
         ];
 
-        $current = $transaction->status;
+        $current = $transactionDetail->status;
 
         if (! in_array($status, $allowedTransitions[$current], true)) {
             throw ValidationException::withMessages([
@@ -65,7 +80,7 @@ class TransactionDetailService
             ]);
         }
 
-        return $this->transactionDetailRepository->updateStatus($transaction, $status);
+        return $this->transactionDetailRepository->updateStatus($transactionDetail, $status);
     }
 
     public function delete(string $id): void

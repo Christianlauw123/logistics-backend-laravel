@@ -11,26 +11,16 @@ class TransactionDetailRepository
     public function findById(string $id): ?TransactionDetail
     {
         return TransactionDetail::with([
-            'customer',
-            'tripPrice',
-            'vehicle',
-            'bankAccount',
-            'user',
-            'details',
-            'attachments',
+            'transaction',
+            'attachment',
         ])->find($id);
     }
 
     public function findByIdOrFail(string $id): TransactionDetail
     {
         return TransactionDetail::with([
-            'customer',
-            'tripPrice',
-            'vehicle',
-            'bankAccount',
-            'user',
-            'details',
-            'attachments',
+            'transaction',
+            'attachment',
         ])->findOrFail($id);
     }
 
@@ -42,7 +32,6 @@ class TransactionDetailRepository
     public function update(TransactionDetail $transactionDetail, array $data): TransactionDetail
     {
         $transactionDetail->update($data);
-
         return $transactionDetail->refresh();
     }
 
@@ -56,5 +45,11 @@ class TransactionDetailRepository
     public function delete(TransactionDetail $transactionDetail): void
     {
         $transactionDetail->update(['deleted_at' => now()]);
+    }
+
+    public function prePopulateCreateTransactionDetail(string $transactionDetailId): void {
+        $transactionDetail = $this->findByIdOrFail($transactionDetailId)->refresh();
+        $transactionDetail->status = 'SUBMITTED';
+        $transactionDetail->save();
     }
 }

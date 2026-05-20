@@ -15,8 +15,8 @@ class StoreTransactionDetailRequest extends FormRequest
     {
         return [
             'amount'            => ['required', 'numeric', 'min:0.1'],
-            'note'              => ['required', 'string'],
-            'purpose'           => ['required', 'string'],
+            'note'              => ['nullable', 'string'],
+            'purpose'           => ['nullable', 'string'],
             'transaction_id'    => ['required', 'uuid', 'exists:transactions,id'],
         ];
     }

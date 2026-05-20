@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\Attachment\UpdateAttachmentStatusRequest;
 use App\Http\Requests\Attachment\StoreAttachmentRequest;
-
+use App\Http\Requests\TransactionDetail\UpdateTransactionDetailRequest;
 use App\Http\Resources\AttachmentResource;
 use App\Services\AttachmentService;
 use Illuminate\Http\JsonResponse;

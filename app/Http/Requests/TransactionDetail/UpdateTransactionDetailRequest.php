@@ -19,4 +19,11 @@ class UpdateTransactionDetailRequest extends FormRequest
             'purpose'           => ['sometimes', 'string'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+
+        ];
+    }
 }

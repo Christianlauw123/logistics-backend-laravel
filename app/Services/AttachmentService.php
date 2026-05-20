@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Services\ExternalServices\GoogleDriveService;
 use App\Models\Attachment;
 use App\Repositories\AttachmentRepository;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class AttachmentService
@@ -20,14 +21,19 @@ class AttachmentService
 
     public function create(array $data, string $userId): Attachment
     {
-        $details = $data['details'];
+        $subFolder = '';
+        if (isset($data['transaction_id']))
+            $subFolder = "transactions/{$data['transaction_id']}";
+        if (isset($data['transaction_detail_id']))
+            $subFolder = "transaction_details/{$data['transaction_detail_id']}";
 
         $transactionData = collect($data)
-            ->except('details')
-            ->merge(['user_id' => $userId])
+            ->merge([
+                'user_id' => $userId,
+            ])
             ->toArray();
 
-        return $this->attachmentRepository->create($data);
+        return $this->attachmentRepository->create($transactionData);
     }
 
     public function update(string $id, array $data): Attachment

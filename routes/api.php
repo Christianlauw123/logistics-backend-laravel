@@ -1,24 +1,24 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AttachmentController;
-use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\BankAccountController;
-use App\Http\Controllers\Api\V1\CityController;
-use App\Http\Controllers\Api\V1\CustomerController;
-use App\Http\Controllers\Api\V1\DistrictController;
-use App\Http\Controllers\Api\V1\SubDistrictController;
-use App\Http\Controllers\Api\V1\TransactionController;
-use App\Http\Controllers\Api\V1\TransactionDetailController;
-use App\Http\Controllers\Api\V1\TripPriceController;
-use App\Http\Controllers\Api\V1\UserController;
-use App\Http\Controllers\Api\V1\VehicleController;
+use App\Http\Controllers\Api\v1\AttachmentController;
+use App\Http\Controllers\Api\v1\AuthController;
+use App\Http\Controllers\Api\v1\BankAccountController;
+use App\Http\Controllers\Api\v1\CityController;
+use App\Http\Controllers\Api\v1\CustomerController;
+use App\Http\Controllers\Api\v1\DistrictController;
+use App\Http\Controllers\Api\v1\SubDistrictController;
+use App\Http\Controllers\Api\v1\TransactionController;
+use App\Http\Controllers\Api\v1\TransactionDetailController;
+use App\Http\Controllers\Api\v1\TripPriceController;
+use App\Http\Controllers\Api\v1\UserController;
+use App\Http\Controllers\Api\v1\VehicleController;
 
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class)->names('users.v1')->whereUuid('user');
     Route::apiResource('transactions', TransactionController::class)->names('transactions.v1')->whereUuid('transaction');
-    Route::apiResource('attachments', AttachmentController::class)->names('attachments.v1')->whereUuid('attachment')->except(['index']);
+    Route::apiResource('attachments', AttachmentController::class)->names('attachments.v1')->whereUuid('attachment')->except(['index', 'update']);
     Route::apiResource('bank_accounts', BankAccountController::class)->names('bank_accounts.v1')->whereUuid('bank_account');
     // Route::apiResource('cities', CityController::class)->names('cities.v1');
     Route::apiResource('customers', CustomerController::class)->names('customers.v1')->whereUuid('customer');

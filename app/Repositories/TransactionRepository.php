@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Transaction;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use phpDocumentor\Reflection\Types\Boolean;
 
 class TransactionRepository
 {
@@ -159,5 +160,16 @@ class TransactionRepository
         $transaction->status = 'SUBMITTED';
         $transaction->do_date = $transaction->created_at->timezone('Asia/Jakarta');
         $transaction->save();
+    }
+
+    public function preCalculateCurrentTransactionTotal(string $transactionId, float $amount){
+        $transaction = $this->findByIdOrFail($transactionId)->refresh();
+        $transactionDetails = $transaction->transactionDetails->whereIn('status', ['SUBMITTED', 'APPROVED', 'DONE']);
+        $total = $transactionDetails ? $transactionDetails->sum('amount') : 0;
+
+        $state = true;
+        if ($total + $amount > $transaction->trip_price_amount || $total + $amount < 0)
+            $state = false;
+        return ['state' => $state, 'trip_price_amount' => $transaction->trip_price_amount, 'current_total' => $total];
     }
 }

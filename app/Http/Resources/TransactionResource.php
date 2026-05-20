@@ -24,20 +24,29 @@ class TransactionResource extends JsonResource
             'transaction_items'     => $this->transaction_items,
             'bank_account_num'      => $this->bank_account_num,
             'customer_name'         => $this->customer_name,
-
+            'trip_price_amount'     => $this->trip_price_amount,
             // Conditional: only load if relation is already loaded
             // Prevents N+1 — never loads relation just for the resource
             'user' => $this->whenLoaded('user', fn () => [
                 'id'   => $this->user->id,
                 'name' => $this->user->name,
             ]),
-            'details' => $this->whenLoaded('details', fn () =>
-                $this->details->where('deleted_at',null)->map(fn ($d) => [
+            'details' => $this->whenLoaded('transactionDetails', fn () =>
+                $this->transactionDetails->where('deleted_at',null)->map(fn ($d) => [
                     'id'      => $d->id,
                     'purpose' => $d->purpose,
                     'amount'  => $d->amount,
                     'note'    => $d->note,
                     'status'  => $d->status,
+                    // Attachment Transaction Detail
+                    'attachments' => $this->whenLoaded('attachments', fn () =>
+                        $this->attachments->where('deleted_at',null)->map(fn ($a) => [
+                            'id'                   => $a->id,
+                            'file_url'             => $a->file_url,
+                            'extracted_do_number'  => $a->extracted_do_number,
+                            'is_verified'          => $a->is_verified,
+                        ])
+                    ),
                 ])
             ),
             'attachments' => $this->whenLoaded('attachments', fn () =>

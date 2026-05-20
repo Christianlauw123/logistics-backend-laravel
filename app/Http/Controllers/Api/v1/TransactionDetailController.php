@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 
@@ -33,37 +33,37 @@ class TransactionDetailController extends Controller
     }
 
     /**
-     * GET /api/v1/transaction_details/{transaction}
+     * GET /api/v1/transaction_details/{transaction_detail}
      */
-    public function show(string $transaction): TransactionDetailResource
+    public function show(string $transactionDetailId): TransactionDetailResource
     {
         return new TransactionDetailResource(
-            $this->transactionDetailService->findOrFail($transaction)
+            $this->transactionDetailService->findOrFail($transactionDetailId)
         );
     }
 
     /**
-     * PUT /api/v1/transaction_details/{transaction}
+     * PUT /api/v1/transaction_details/{transaction_detail}
      */
-    public function update(UpdateTransactionDetailRequest $request, string $transaction): TransactionDetailResource
+    public function update(UpdateTransactionDetailRequest $request, string $transactionDetailId): TransactionDetailResource
     {
         return new TransactionDetailResource(
-            $this->transactionDetailService->update($transaction, $request->validated())
+            $this->transactionDetailService->update($transactionDetailId, $request->validated())
         );
     }
 
     /**
-     * PATCH /api/v1/transaction_details/{transaction}/status
+     * PATCH /api/v1/transaction_details/{transaction_detail}/status
      */
-    public function updateStatus(UpdateTransactionDetailStatusRequest $request, string $transaction): TransactionDetailResource
+    public function updateStatus(UpdateTransactionDetailStatusRequest $request, string $transactionDetailId): TransactionDetailResource
     {
         return new TransactionDetailResource(
-            $this->transactionDetailService->changeStatus($transaction, $request->validated('status'))
+            $this->transactionDetailService->changeStatus($transactionDetailId, $request->validated('status'))
         );
     }
 
     /**
-     * DELETE /api/v1/transaction_details/{transaction}
+     * DELETE /api/v1/transaction_details/{transaction_detail}
      */
     public function destroy(string $transaction): JsonResponse
     {
