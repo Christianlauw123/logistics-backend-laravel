@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['amount', 'file_url', 'extracted_do_number', 'extracted_do_date', 'upload_status', 'upload_status_error', 'status', 'uploaded_at', 'transaction_id', 'transaction_detail_id'])]
+#[Fillable(['amount', 'file_url', 'file_id', 'file_provider', 'extracted_do_number', 'extracted_do_date', 'upload_status', 'upload_status_error', 'status', 'uploaded_at', 'transaction_id', 'transaction_detail_id'])]
 class Attachment extends Model
 {
     use HasUuids, SoftDeletes;

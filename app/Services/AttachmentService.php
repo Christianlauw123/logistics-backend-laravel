@@ -12,6 +12,7 @@ class AttachmentService
 {
     public function __construct(
         private readonly AttachmentRepository $attachmentRepository,
+        private readonly GoogleDriveService $googleDriveService,
     ) {}
 
     public function findOrFail(string $id): Attachment
@@ -27,9 +28,24 @@ class AttachmentService
         if (isset($data['transaction_detail_id']))
             $subFolder = "transaction_details/{$data['transaction_detail_id']}";
 
+        $driveData = $this->googleDriveService->upload(
+            $data['file'],
+            subFolder: $subFolder,
+        );
+
+        dd($driveData);
+
+
         $transactionData = collect($data)
             ->merge([
+                'transaction_detail_id' => $data['transaction_id'] ?? null,
+                'transaction_id' => $data['transaction_detail_id'] ?? null,
                 'user_id' => $userId,
+                'file_url' => $driveData['file_url'],
+                'file_provider' => 'google-drive',
+                'file_id' => $driveData['drive_file_id'],
+                'upload_status' => 'COMPLETED',
+                'uploaded_at' => now()
             ])
             ->toArray();
 
@@ -82,6 +98,10 @@ class AttachmentService
                 'status' => 'Only SUBMITTED Attachments can be deleted.',
             ]);
         }
+
+        // Delete From Drive
+        // Upload into same folder, but deleted folder
+
 
         $this->attachmentRepository->delete($attachment);
     }

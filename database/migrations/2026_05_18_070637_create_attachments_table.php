@@ -15,6 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->decimal('amount')->nullable();
             $table->text('file_url')->nullable();
+            $table->text('file_id')->nullable();
+            $table->text('file_provider')->nullable();
             $table->text('extracted_do_number')->nullable();
             $table->date('extracted_do_date')->nullable();
             // 'PENDING', 'COMPLETED', 'ERROR'
