@@ -17,6 +17,10 @@ class SubDistrict extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $casts = [
+        'deleted_at'  => 'datetime',
+    ];
+
     public function district(): BelongsTo {
         return $this->belongsTo(District::class);
     }

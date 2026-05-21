@@ -103,16 +103,10 @@ class AttachmentService
     {
         $attachment = $this->attachmentRepository->findByIdOrFail($id);
 
-        // Business rule: only SUBMITTED can be deleted
-        if ($attachment->status !== 'SUBMITTED') {
-            throw ValidationException::withMessages([
-                'status' => 'Only SUBMITTED Attachments can be deleted.',
-            ]);
-        }
-
         // Delete From Drive
         // Upload into same folder, but deleted folder
-
+        if($attachment->file_id)
+            $this->googleDriveService->delete($attachment->file_id);
 
         $this->attachmentRepository->delete($attachment);
     }

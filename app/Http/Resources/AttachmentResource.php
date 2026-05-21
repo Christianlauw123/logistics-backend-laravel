@@ -18,10 +18,10 @@ class AttachmentResource extends JsonResource
             'upload_status'         => $this->upload_status,
             'upload_status_error'   => $this->upload_status_error,
             'status'                => $this->status,
-            'uploaded_at'           => $this->uploaded_at?->toDateTimeString(),
-            'created_at'            => $this->created_at->toDateTimeString(),
-            'updated_at'            => $this->updated_at?->toDateTimeString(),
-            'deleted_at'            => $this->deleted_at?->toDateTimeString(),
+            'uploaded_at'           => $this->uploaded_at,
+            'created_at'            => $this->created_at,
+            'updated_at'            => $this->updated_at,
+            'deleted_at'            => $this->deleted_at,
         ];
     }
 }

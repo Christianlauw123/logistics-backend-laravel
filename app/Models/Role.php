@@ -15,6 +15,10 @@ class Role extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $casts = [
+        'deleted_at'  => 'datetime',
+    ];
+
     public function users(): HasMany {
         return $this->hasMany(User::class);
     }

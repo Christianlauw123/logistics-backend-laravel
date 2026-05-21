@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\TransactionDetail;
 use App\Repositories\TransactionDetailRepository;
 use App\Repositories\TransactionRepository;
+use App\Services\ExternalServices\GoogleDriveService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
@@ -13,6 +14,7 @@ class TransactionDetailService
     public function __construct(
         private readonly TransactionDetailRepository $transactionDetailRepository,
         private readonly TransactionRepository $transactionRepository,
+        private readonly GoogleDriveService $googleDriveService,
     ) {}
 
     public function findOrFail(string $id): TransactionDetail
@@ -87,12 +89,8 @@ class TransactionDetailService
     {
         $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
 
-        // Business rule: only SUBMITTED can be deleted
-        if ($transactionDetail->status !== 'SUBMITTED') {
-            throw ValidationException::withMessages([
-                'status' => 'Only SUBMITTED transactions can be deleted.',
-            ]);
-        }
+        if($transactionDetail->attachment->file_id)
+            $this->googleDriveService->delete($transactionDetail->attachment->file_id);
 
         $this->transactionDetailRepository->delete($transactionDetail);
     }

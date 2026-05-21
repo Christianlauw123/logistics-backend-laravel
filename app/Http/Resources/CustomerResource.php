@@ -14,9 +14,9 @@ class CustomerResource extends JsonResource
             'name'          => $this->name,
             'phone'         => $this->phone,
             'address'       => $this->address,
-            'created_at'    => $this->created_at->toDateTimeString(),
-            'updated_at'    => $this->updated_at?->toDateTimeString(),
-            'deleted_at'    => $this->deleted_at?->toDateTimeString(),
+            'created_at'    => $this->created_at,
+            'updated_at'    => $this->updated_at,
+            'deleted_at'    => $this->deleted_at,
         ];
     }
 }

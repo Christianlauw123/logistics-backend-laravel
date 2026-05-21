@@ -15,6 +15,10 @@ class Vehicle extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $casts = [
+        'deleted_at'  => 'datetime',
+    ];
+
     public function transactions(): HasMany{
         return $this->hasMany(Transaction::class);
     }

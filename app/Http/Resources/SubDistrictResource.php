@@ -12,9 +12,9 @@ class SubDistrictResource extends JsonResource
         return [
             'id'            => $this->id,
             'name'          => $this->name,
-            'created_at'    => $this->created_at->toDateTimeString(),
-            'updated_at'    => $this->updated_at?->toDateTimeString(),
-            'deleted_at'    => $this->deleted_at?->toDateTimeString(),
+            'created_at'    => $this->created_at,
+            'updated_at'    => $this->updated_at,
+            'deleted_at'    => $this->deleted_at,
 
             'district'      => $this->whenLoaded('district', fn () => [
                 'id'        => $this->district->id,

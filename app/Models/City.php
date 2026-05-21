@@ -15,6 +15,10 @@ class City extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $casts = [
+        'deleted_at'  => 'datetime',
+    ];
+
     // public function districts(): HasMany {
     //     return $this->hasMany(District::class);
     // }

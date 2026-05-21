@@ -16,7 +16,7 @@ class TransactionResource extends JsonResource
             'dest_address'          => $this->dest_address,
             'do_date'               => $this->do_date,
             'do_actual_date'        => $this->do_actual_date,
-            'created_at'            => $this->created_at?->toDateTimeString(),
+            'created_at'            => $this->created_at,
             'vehicle_plate'         => $this->vehicle_plate,
             'vehicle_type'          => $this->vehicle_type,
             'vehicle_capacity'      => $this->vehicle_capacity,
@@ -39,8 +39,8 @@ class TransactionResource extends JsonResource
                     'note'    => $d->note,
                     'status'  => $d->status,
                     // Attachment Transaction Detail
-                    'attachments' => $this->whenLoaded('attachments', fn () =>
-                        $this->attachments->where('deleted_at',null)->map(fn ($a) => [
+                    'attachments' => $d->relationLoaded('attachments', fn () =>
+                        $d->attachments->where('deleted_at',null)->map(fn ($a) => [
                             'id'                   => $a->id,
                             'file_url'             => $a->file_url,
                             'extracted_do_number'  => $a->extracted_do_number,

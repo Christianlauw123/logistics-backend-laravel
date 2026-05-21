@@ -15,9 +15,9 @@ class TransactionDetailResource extends JsonResource
             'note'          => $this->note,
             'purpose'       => $this->purpose,
             'status'        => $this->status,
-            'created_at'    => $this->created_at->toDateTimeString(),
-            'updated_at'    => $this->updated_at?->toDateTimeString(),
-            'deleted_at'    => $this->deleted_at?->toDateTimeString(),
+            'created_at'    => $this->created_at,
+            'updated_at'    => $this->updated_at,
+            'deleted_at'    => $this->deleted_at,
 
             'transaction'   => $this->whenLoaded('transaction', fn () => [
                 'id'        => $this->transaction->id,

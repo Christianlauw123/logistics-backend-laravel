@@ -121,11 +121,8 @@ class TransactionService
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
         // Business rule: only SUBMITTED can be deleted
-        if ($transaction->status !== 'SUBMITTED') {
-            throw ValidationException::withMessages([
-                'status' => 'Only SUBMITTED transactions can be deleted.',
-            ]);
-        }
+        if($transaction->file_folder_id)
+            $this->googleDriveService->delete($transaction->file_folder_id);
 
         $this->transactionRepository->delete($transaction);
     }

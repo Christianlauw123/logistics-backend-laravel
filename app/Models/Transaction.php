@@ -17,6 +17,10 @@ class Transaction extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $casts = [
+        'deleted_at'  => 'datetime',
+    ];
+
     public function customer(): BelongsTo{
         return $this->belongsTo(Customer::class);
     }

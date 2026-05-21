@@ -1,59 +1,115 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Deployment Guide
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 1. Google OAuth Setup
 
-## About Laravel
+1. Go to the [Google Cloud Console](https://console.cloud.google.com) and create an OAuth 2.0 Client ID and Secret.
+2. Add **Google Drive API** to your project.
+3. Set the following Redirect URIs on your OAuth client:
+   - `https://developers.google.com/oauthplayground`
+   - `https://google.com`
+4. Publish the OAuth consent screen.
+5. Go to [OAuth Playground](https://developers.google.com/oauthplayground) to generate a fully-refreshed token.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 2. Configure Environment Variables
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Get your Google Drive folder ID from the URL:
+https://drive.google.com/drive/folders/{YOUR_FOLDER_ID}
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
+2. Navigate to your project folder and open `.env`:
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+   cd {folder}
+   nano .env
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+3. Add the following:
+```env
+   GOOGLE_DRIVE_FOLDER_ID=
+   BACKUP_DRIVE_FOLDER_ID=
+```
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 3. NGINX & SSL Setup
 
-## Code of Conduct
+Test and reload NGINX:
+```bash
+sudo nginx -t                  # Must output "ok"
+sudo systemctl reload nginx
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Install Certbot and generate an SSL certificate:
+```bash
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+```
 
-## Security Vulnerabilities
+Test auto-renewal:
+```bash
+sudo certbot renew --dry-run
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 4. Docker — First-Time Setup
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# logistics-backend-laravel
+```bash
+docker compose up -d --build
+```
+
+Then run these one by one:
+
+```bash
+# Generate app key
+docker compose exec app php artisan key:generate
+# If the above fails, add --force:
+# docker compose exec app php artisan key:generate --force
+
+# Run database migrations
+docker compose exec app php artisan migrate --force
+
+# Seed the database (first time only)
+docker compose exec app php artisan db:seed
+
+# Cache config and routes for production
+docker compose exec app php artisan config:cache
+docker compose exec app php artisan route:cache
+```
+
+---
+
+## 5. Stopping Docker
+
+```bash
+docker compose down
+```
+
+> ⚠️ **Never use `-v`** — it will wipe the database.
+
+---
+
+## 6. Deploying Updates
+
+```bash
+cd /apps/logistics
+git pull
+docker compose up -d --build app
+docker compose exec app php artisan migrate --force
+docker compose exec app php artisan config:cache
+docker compose exec app php artisan route:cache
+```
+
+**If there was a rebase:**
+```bash
+git fetch origin
+git reset --hard origin/master
+```
+
+---
+
+## 7. Accessing the Database
+
+```bash
+docker compose exec postgres psql -U username -d database_name
+```
