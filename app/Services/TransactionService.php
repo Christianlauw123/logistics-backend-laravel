@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Transaction;
 use App\Repositories\TransactionRepository;
 use App\Repositories\TripPriceRepository;
+use App\Services\ExternalServices\GoogleDriveService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
@@ -13,6 +14,7 @@ class TransactionService
     public function __construct(
         private readonly TransactionRepository $transactionRepository,
         private readonly TripPriceRepository $tripPriceRepository,
+        private readonly GoogleDriveService $googleDriveService,
     ) {}
 
     public function list(array $filters, array $sort, int $perPage): LengthAwarePaginator
@@ -47,8 +49,21 @@ class TransactionService
 
         $transaction = $this->transactionRepository->create($transactionData);
 
+        // Create Drive Folder
+        $subFolder = 'PENDING_DO_NUMBER';
+        if($transaction->do_number !== null)
+            $subFolder = $transaction->do_number;
+        $subFolder = 'transactions;'.$transaction->do_date.';'.$subFolder.';'.$transaction->customer_name.';'.$transaction->id;
+
         $this->transactionRepository->prePopulateTransaction($transaction->id);
         $this->transactionRepository->prePopulateCreateTransaction($transaction->id);
+
+        // Set file_provider & file_folder_id to db
+        // Create Folder Parent
+        $transactionFolder = $this->googleDriveService->createFolder($subFolder);
+        $transactionDetailFolder = $this->googleDriveService->createFolder('transaction_details', $transactionFolder);
+        $this->transactionRepository->setGoogleDriveFolder($transaction->id, $transactionFolder, $transactionDetailFolder);
+
         return $transaction;
     }
 
@@ -65,7 +80,16 @@ class TransactionService
 
         $this->transactionRepository->update($transaction, $data);
         $this->transactionRepository->prePopulateTransaction($transaction->id);
-        return $transaction->refresh();
+        $transaction->refresh();
+
+        // Update Drive Folder Name
+        $subFolder = 'PENDING_DO_NUMBER';
+        if($transaction->do_number !== null)
+            $subFolder = $transaction->do_number;
+        $subFolder = 'transactions;'.$transaction->do_date.';'.$subFolder.';'.$transaction->customer_name.';'.$transaction->id;
+        $this->googleDriveService->renameFolder($transaction->file_folder_id, $subFolder);
+
+        return $transaction;
     }
 
     public function changeStatus(string $id, string $status): Transaction

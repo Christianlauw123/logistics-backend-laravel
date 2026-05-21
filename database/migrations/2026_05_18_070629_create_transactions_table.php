@@ -14,6 +14,11 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->decimal('trip_price_amount')->nullable();
+
+            $table->text('file_folder_id')->nullable();
+            $table->text('file_sub_folder_id')->nullable();
+            $table->text('file_provider')->nullable();
+
             $table->timestampsTz();
             $table->timestampTz('deleted_at')->nullable();
 

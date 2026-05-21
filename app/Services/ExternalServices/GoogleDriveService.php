@@ -18,9 +18,14 @@ class GoogleDriveService
     {
         $client = new GoogleClient();
 
-        // Auth via service account JSON from env — no file on disk needed
-        $credentials = json_decode(config('services.google.service_account'), true);
-        $client->setAuthConfig($credentials);
+        // // Auth via service account JSON from env — no file on disk needed
+        // $credentials = json_decode(config('services.google.service_account'), true);
+        // $client->setAuthConfig($credentials);
+
+        // Auth using Oauth2
+        $client->setClientId(config('services.google.client_id'));
+        $client->setClientSecret(config('services.google.client_secret'));
+        $client->refreshToken(config('services.google.refresh_token'));
         $client->addScope(GoogleDrive::DRIVE);
 
         $this->drive        = new GoogleDrive($client);
@@ -31,9 +36,9 @@ class GoogleDriveService
      * Upload a file to Drive.
      * Returns drive_file_id, file_url, original_filename, mime_type.
      */
-    public function upload(UploadedFile $file, string $filename = '', string $subFolder = ''): array
+    public function upload(UploadedFile $file, string $folderId, string $filename = ''): array
     {
-        $folderId = $subFolder ? $this->ensureFolder($subFolder, $this->rootFolderId) : $this->rootFolderId;
+        $folderId = $folderId ?? $this->rootFolderId;
 
         $filename = $filename . '.' . $file->getClientOriginalExtension();
 
@@ -81,6 +86,39 @@ class GoogleDriveService
     }
 
     /**
+     * Create a subfolder inside a parent folder.
+     * Returns the folder ID.
+     * Calling ensureFolder()
+    */
+    public function createFolder(string $folderName, ?string $parentId = null): string {
+        return $this->ensureFolder($folderName, $parentId ?? $this->rootFolderId);
+    }
+
+    /**
+     * Renaming a file
+     * Returns the folder ID.
+     * Calling ensureFolder()
+    */
+    public function renameFolder(string $driveId, string $newFolderName): bool
+    {
+        try {
+            // File metadata
+            $metadata = new DriveFile();
+            $metadata->name = $newFolderName;
+
+            // Update the name using the permanent Drive ID
+            $this->drive->files->update($driveId, $metadata, [
+                'fields' => 'id, name'
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error("Google Drive Rename Failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Find or create a subfolder inside a parent folder.
      * Returns the folder ID.
      * Used to organise: transactions/42/filename.pdf
@@ -95,8 +133,6 @@ class GoogleDriveService
                       . " and trashed=false",
             'fields' => 'files(id)',
         ]);
-        dd($results);
-
 
         $files = $results->getFiles();
 

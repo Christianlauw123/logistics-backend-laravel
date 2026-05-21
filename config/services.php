@@ -39,6 +39,9 @@ return [
         'service_account' => env('GOOGLE_SERVICE_ACCOUNT_JSON'),
         'drive_attachment_folder_id' => env('GOOGLE_DRIVE_FOLDER_ID'),
         'drive_backup_folder_id' => env('BACKUP_DRIVE_FOLDER_ID'),
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'refresh_token' => env('GOOGLE_REFRESH_TOKEN')
     ]
 
 ];

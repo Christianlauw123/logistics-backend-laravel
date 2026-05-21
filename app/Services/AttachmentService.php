@@ -5,14 +5,18 @@ namespace App\Services;
 use App\Services\ExternalServices\GoogleDriveService;
 use App\Models\Attachment;
 use App\Repositories\AttachmentRepository;
-use Illuminate\Http\UploadedFile;
+use App\Repositories\TransactionDetailRepository;
+use App\Repositories\TransactionRepository;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 
 class AttachmentService
 {
     public function __construct(
         private readonly AttachmentRepository $attachmentRepository,
         private readonly GoogleDriveService $googleDriveService,
+        private readonly TransactionRepository $transactionRepostory,
+        private readonly TransactionDetailRepository $transactionDetailRepostory
     ) {}
 
     public function findOrFail(string $id): Attachment
@@ -22,19 +26,25 @@ class AttachmentService
 
     public function create(array $data, string $userId): Attachment
     {
-        $subFolder = '';
-        if (isset($data['transaction_id']))
-            $subFolder = "transactions/{$data['transaction_id']}";
-        if (isset($data['transaction_detail_id']))
-            $subFolder = "transaction_details/{$data['transaction_detail_id']}";
+        $folderId = '';
+        $filename = '';
+        if (isset($data['transaction_id'])){
+            $folderId = $this->getFolder($data['transaction_id'], 'transaction');
+            $filename = Str::random(10)."_TEMP_{$data['transaction_id']}";
+            $folderId = $folderId['folder_id'];
+        }
+
+        if (isset($data['transaction_detail_id'])){
+            $folderId = $this->getFolder($data['transaction_detail_id'], 'transaction_detail');
+            $filename = Str::random(10)."_TEMP_{$data['transaction_detail_id']}";
+            $folderId = $folderId['sub_folder_id'];
+        }
 
         $driveData = $this->googleDriveService->upload(
             $data['file'],
-            subFolder: $subFolder,
+            folderId: $folderId,
+            filename: $filename,
         );
-
-        dd($driveData);
-
 
         $transactionData = collect($data)
             ->merge([
@@ -48,8 +58,9 @@ class AttachmentService
                 'uploaded_at' => now()
             ])
             ->toArray();
+        $attachment = $this->attachmentRepository->create($transactionData);
 
-        return $this->attachmentRepository->create($transactionData);
+        return $attachment->refresh();
     }
 
     public function update(string $id, array $data): Attachment
@@ -104,5 +115,23 @@ class AttachmentService
 
 
         $this->attachmentRepository->delete($attachment);
+    }
+
+    private function getFolder(string $id, string $type): array {
+        $transaction = null;
+        if($type === 'transaction'){
+            $transaction = $this->transactionRepostory->findByIdOrFail($id);
+        }elseif($type === 'transaction_detail'){
+            $transactionDetail = $this->transactionDetailRepostory->findByIdOrFail($id);
+            $transaction = $transactionDetail->transaction;
+        }else{
+            throw ValidationException::withMessages([
+                'transaction' => 'Attachment not valid',
+            ]);
+        }
+        return [
+            'folder_id' => $transaction->file_folder_id,
+            'sub_folder_id' => $transaction->file_sub_folder_id,
+        ];
     }
 }

@@ -172,4 +172,13 @@ class TransactionRepository
             $state = false;
         return ['state' => $state, 'trip_price_amount' => $transaction->trip_price_amount, 'current_total' => $total];
     }
+
+    public function setGoogleDriveFolder(string $transactionId, string $transactionFolderId, string $transactionDetailFolderId): void {
+        $transaction = $this->findByIdOrFail($transactionId)->refresh();
+        $transaction->file_folder_id = $transactionFolderId;
+        $transaction->file_sub_folder_id = $transactionDetailFolderId;
+        $transaction->file_provider = 'google-drive';
+        $transaction->save();
+    }
 }
+
