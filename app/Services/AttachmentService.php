@@ -48,8 +48,8 @@ class AttachmentService
 
         $transactionData = collect($data)
             ->merge([
-                'transaction_detail_id' => $data['transaction_id'] ?? null,
-                'transaction_id' => $data['transaction_detail_id'] ?? null,
+                'transaction_detail_id' => $data['transaction_detail_id'] ?? null,
+                'transaction_id' => $data['transaction_id'] ?? null,
                 'user_id' => $userId,
                 'file_url' => $driveData['file_url'],
                 'file_provider' => 'google-drive',

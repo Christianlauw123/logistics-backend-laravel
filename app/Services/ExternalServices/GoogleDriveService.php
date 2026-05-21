@@ -18,15 +18,15 @@ class GoogleDriveService
     {
         $client = new GoogleClient();
 
-        // // Auth via service account JSON from env — no file on disk needed
-        // $credentials = json_decode(config('services.google.service_account'), true);
-        // $client->setAuthConfig($credentials);
-
-        // Auth using Oauth2
         $client->setClientId(config('services.google.client_id'));
         $client->setClientSecret(config('services.google.client_secret'));
-        $client->refreshToken(config('services.google.refresh_token'));
         $client->addScope(GoogleDrive::DRIVE);
+
+        // Correct way: set the refresh token as an access token structure
+        // then call fetchAccessTokenWithRefreshToken() to get a live access token
+        $client->fetchAccessTokenWithRefreshToken(
+            config('services.google.refresh_token')
+        );
 
         $this->drive        = new GoogleDrive($client);
         $this->rootFolderId = config('services.google.drive_attachment_folder_id');
