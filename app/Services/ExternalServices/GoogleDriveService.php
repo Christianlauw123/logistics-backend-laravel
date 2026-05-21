@@ -19,12 +19,12 @@ class GoogleDriveService
         $client = new GoogleClient();
 
         // Auth via service account JSON from env — no file on disk needed
-        $credentials = json_decode(env('GOOGLE_SERVICE_ACCOUNT_JSON'), true);
+        $credentials = json_decode(config('services.google.service_account'), true);
         $client->setAuthConfig($credentials);
         $client->addScope(GoogleDrive::DRIVE);
 
         $this->drive        = new GoogleDrive($client);
-        $this->rootFolderId = env('GOOGLE_DRIVE_FOLDER_ID');
+        $this->rootFolderId = config('services.google.drive_attachment_folder_id');
     }
 
     /**
