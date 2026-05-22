@@ -58,6 +58,15 @@ class AttachmentService
                 'uploaded_at' => now()
             ])
             ->toArray();
+        // $transactionData = collect($data)
+        //     ->merge([
+        //         'transaction_detail_id' => $data['transaction_detail_id'] ?? null,
+        //         'transaction_id' => $data['transaction_id'] ?? null,
+        //         'user_id' => $userId,
+        //         'upload_status' => 'COMPLETED',
+        //         'uploaded_at' => now()
+        //     ])
+        //     ->toArray();
         $attachment = $this->attachmentRepository->create($transactionData);
 
         return $attachment->refresh();

@@ -25,7 +25,8 @@ class UpdateTransactionRequest extends FormRequest
             'transaction_capacity'  => ['sometimes', 'numeric', 'min:0'],
             'transaction_items'     => ['sometimes', 'string', 'max:255'],
             'origin_sub_district_id'=> ['sometimes', 'uuid', 'exists:sub_districts,id'],
-            'dest_sub_district_id'  => ['sometimes', 'uuid', 'exists:sub_districts,id']
+            'dest_sub_district_id'  => ['sometimes', 'uuid', 'exists:sub_districts,id'],
+            'note'                  => ['nullable', 'string'],
         ];
     }
 }

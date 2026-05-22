@@ -23,7 +23,8 @@ class StoreTransactionRequest extends FormRequest
             'transaction_capacity'      => ['required', 'numeric', 'min:0'],
             'transaction_items'         => ['required', 'string', 'max:255'],
             'origin_sub_district_id'    => ['required', 'uuid', 'exists:sub_districts,id'],
-            'dest_sub_district_id'      => ['required', 'uuid', 'exists:sub_districts,id']
+            'dest_sub_district_id'      => ['required', 'uuid', 'exists:sub_districts,id'],
+            'note'                      => ['nullable', 'string'],
         ];
     }
 

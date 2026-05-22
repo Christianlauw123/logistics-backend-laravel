@@ -29,7 +29,11 @@ class SubDistrictRepository
             )
             ->when(
                 isset($filters['districtId']),
-                fn ($q) => $q->where('id', $filters['districtId'])
+                fn ($q) => $q->where('district_id', $filters['districtId'])
+            )
+            ->when(
+                isset($filters['id']),
+                fn ($q) => $q->where('id', $filters['id'])
             )
             ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,

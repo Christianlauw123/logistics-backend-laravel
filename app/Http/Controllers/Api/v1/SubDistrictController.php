@@ -24,7 +24,7 @@ class SubDistrictController extends Controller
             deleted - boolean true / false
         */
         $perPage = (int) ($request->query('per_page', 15) ?? 15);
-        $data = $this->subDistrictService->list($request->only(['search', 'districtId', 'deleted']), $perPage);
+        $data = $this->subDistrictService->list($request->only(['search', 'districtId', 'deleted', 'id']), $perPage);
         return response()->json($data);
     }
 

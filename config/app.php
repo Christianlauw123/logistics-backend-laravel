@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Application Environment
+    |--------------------------------------------------------------------------
+    |
+    | This value determines the "Custom nvironment" your application is currently
+    | running in.
+    |
+    */
+    'app_domain' => env('APP_DOMAIN'),
+
 ];

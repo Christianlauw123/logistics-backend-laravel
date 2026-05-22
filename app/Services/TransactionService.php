@@ -69,6 +69,20 @@ class TransactionService
 
     public function update(string $id, array $data): Transaction
     {
+        // Check TripPrice if exists
+        $filters = [
+            'customer_id' => $data['customer_id'],
+            'origin_sub_district_id' => $data['origin_sub_district_id'],
+            'dest_sub_district_id' => $data['dest_sub_district_id']
+        ];
+        $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
+
+        if (count($tripPriceCheck->items()) <= 0) {
+            throw ValidationException::withMessages([
+                'trip_price' => 'Base price for this customer and route not exists.',
+            ]);
+        }
+
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
         // Business rule: only SUBMITTED transactions can be edited

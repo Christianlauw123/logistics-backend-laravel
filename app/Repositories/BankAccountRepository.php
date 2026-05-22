@@ -23,6 +23,10 @@ class BankAccountRepository
                             ->orWhere('account_name', 'ilike', "%{$filters['search']}%")
             )
             ->when(
+                isset($filters['id']),
+                fn ($q) => $q->where('id', $filters['id'])
+            )
+            ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
             )

@@ -51,7 +51,7 @@ class TransactionDetailService
             ]);
         }
 
-        $detailCreationAllowed = $this->transactionRepository->preCalculateCurrentTransactionTotal($id, -$transactionDetail->amount + $data['amount']);
+        $detailCreationAllowed = $this->transactionRepository->preCalculateCurrentTransactionTotal($transactionDetail->transaction->id, -$transactionDetail->amount + $data['amount']);
         if(!$detailCreationAllowed['state']){
             throw ValidationException::withMessages([
                 'amount' => 'Jumlah Amount Baru melebihi biaya trip maksimal '.$detailCreationAllowed['trip_price_amount'],
@@ -76,6 +76,12 @@ class TransactionDetailService
 
         $current = $transactionDetail->status;
 
+        if (in_array($transactionDetail->transaction->status, ['CANCELLED', 'REJECTED'], true)) {
+            throw ValidationException::withMessages([
+                'status' => "Cannot Update. Transaction is in {$transactionDetail->transaction->status} status.",
+            ]);
+        }
+
         if (! in_array($status, $allowedTransitions[$current], true)) {
             throw ValidationException::withMessages([
                 'status' => "Cannot transition from {$current} to {$status}.",
@@ -88,7 +94,11 @@ class TransactionDetailService
     public function delete(string $id): void
     {
         $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
-
+        if ($transactionDetail->status !== 'SUBMITTED') {
+            throw ValidationException::withMessages([
+                'status' => 'Only SUBMITTED transactions can be deleted.',
+            ]);
+        }
         if($transactionDetail->attachment->file_id)
             $this->googleDriveService->delete($transactionDetail->attachment->file_id);
 

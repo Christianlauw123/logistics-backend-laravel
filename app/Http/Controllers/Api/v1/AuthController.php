@@ -61,13 +61,38 @@ class AuthController extends Controller
             expiresAt: $expiration
         )->plainTextToken;
 
-        return response()->json(['token' => $token]);
+        // setting up sanctum httpCookie
+        $minutes = now()->diffInMinutes($expiration);
+
+        return response()
+            ->json([
+                'message' => 'Login successful',
+                'user' => $user,
+                'expires_at' => $expiration->toISOString(),
+                'token_for_testing' => app()->environment('local') ? $token : null,
+            ])
+            ->cookie(
+                'access_token',
+                $token,
+                $minutes, // 7 days
+                '/',
+                app()->environment('production') ? config('app.app_domain') : null,
+                app()->environment('production'), // secure = false for localhost HTTP
+                true,  // httpOnly = true
+                false,
+                app()->environment('production') ? 'None' : 'Lax'
+            );
+    }
+
+    public function me(Request $request)
+    {
+        return response()->json(['user' => $request->user(),]);
     }
 
     public function logout(Request $request): JsonResponse
     {
         $request->user()?->currentAccessToken()?->delete();
 
-        return response()->json(['message' => 'Logged out.']);
+        return response()->json(['message' => 'Logged out.'])->withoutCookie('access_token');
     }
 }

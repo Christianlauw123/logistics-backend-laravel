@@ -25,6 +25,14 @@ class TransactionResource extends JsonResource
             'bank_account_num'      => $this->bank_account_num,
             'customer_name'         => $this->customer_name,
             'trip_price_amount'     => $this->trip_price_amount,
+            'note'                  => $this->note,
+            'origin_district'       => $this->origin_district,
+            'destination_district'  => $this->destination_district,
+            'customer_id'           => $this->customer_id,
+            'vehicle_id'            => $this->vehicle_id,
+            'bank_account_id'       => $this->bank_account_id,
+            'origin_sub_district_id'=> $this->origin_sub_district_id,
+            'dest_sub_district_id'  => $this->dest_sub_district_id,
             // Conditional: only load if relation is already loaded
             // Prevents N+1 — never loads relation just for the resource
             'user' => $this->whenLoaded('user', fn () => [

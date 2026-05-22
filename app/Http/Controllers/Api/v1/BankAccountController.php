@@ -24,7 +24,7 @@ class BankAccountController extends Controller
         */
 
         $perPage = (int) ($request->query('per_page', 15) ?? 15);
-        $data = $this->bankAccountService->list($request->only(['search', 'deleted']), $perPage);
+        $data = $this->bankAccountService->list($request->only(['search', 'deleted', 'id']), $perPage);
         return response()->json($data);
     }
 

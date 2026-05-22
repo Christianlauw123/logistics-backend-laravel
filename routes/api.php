@@ -32,10 +32,12 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::patch('transactions/{transaction}/status', [TransactionController::class, 'updateStatus'])->name('transactions.v1.update_status')->whereUuid('transaction');
     Route::patch('attachments/{attachment}/status', [AttachmentController::class, 'updateStatus'])->name('attachments.v1.update_status')->whereUuid('attachment');
     Route::patch('transaction_details/{transaction_detail}/status', [TransactionDetailController::class, 'updateStatus'])->name('transaction_details.v1.update_status')->whereUuid('transaction_detail');
+
+    Route::get('auth/me', [AuthController::class, 'me'])->name('auth.v1.me');
+    Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.v1.logout');
 });
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login'])->name('auth.v1.login');
-    Route::post('auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('auth.v1.logout');
 });
 

@@ -47,7 +47,8 @@ class TransactionRepository
                       ->orWhere('customer_name', 'ilike', "%{$filters['search']}%")
                       ->orWhere('note', 'ilike', "%{$filters['search']}%")
                       ->orWhere('origin_district', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('destination_district', 'ilike', "%{$filters['search']}%");
+                      ->orWhere('destination_district', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('do_number', 'ilike', "%{$filters['search']}%");
                 })
             )
             // exact filters
