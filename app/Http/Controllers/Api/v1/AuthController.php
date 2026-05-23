@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +13,10 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private readonly UserService $userService,
+    ) {}
+
     public function login(Request $request): JsonResponse
     {
         $request->validate([
@@ -67,7 +73,9 @@ class AuthController extends Controller
         return response()
             ->json([
                 'message' => 'Login successful',
-                'user' => $user,
+                'user' => new UserResource(
+                    $this->userService->findOrFail($user->id)
+                ),
                 'expires_at' => $expiration->toISOString(),
                 'token_for_testing' => app()->environment('local') ? $token : null,
             ])
@@ -86,9 +94,12 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json(['user' => $request->user(),]);
+        return response()->json([
+            'user' => new UserResource(
+                $this->userService->findOrFail($request->user()->id)
+            )
+        ]);
     }
-
     public function logout(Request $request): JsonResponse
     {
         $request->user()?->currentAccessToken()?->delete();

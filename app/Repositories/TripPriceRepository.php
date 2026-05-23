@@ -20,13 +20,15 @@ class TripPriceRepository
         return TripPrice::query()
             ->with([
                 'customer:id,name',
-                'originSubDistrict:id,name',
-                'destinationSubDistrict:id,name'
+                'originSubDistrict:id,name,district_id',
+                'originSubDistrict.district:id,name',
+                'destinationSubDistrict:id,name,district_id',
+                'destinationSubDistrict.district:id,name'
             ])
             ->when(
                 isset($filters['search']),
                 fn ($q) => $q->where(function ($query) use ($filters) {
-                    $query->where('customers.name', 'ilike', "%{$filters['search']}%")
+                    $query->whereRelation('customer', 'name', 'ilike', "%{$filters['search']}%")
                           ->orWhereRelation('originSubDistrict', 'name', 'ilike', "%{$filters['search']}%")
                           ->orWhereRelation('destinationSubDistrict', 'name', 'ilike', "%{$filters['search']}%");
                 })

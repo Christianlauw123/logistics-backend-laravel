@@ -16,11 +16,11 @@ class TripPriceResource extends JsonResource
             'updated_at'    => $this->updated_at,
             'deleted_at'    => $this->deleted_at,
 
-            'origin'      => $this->whenLoaded('originSubDistrict', fn () => [
+            'origin'      => $this->whenLoaded('originSubDistrict', fn ($d) => [
                 'id'        => $this->originSubDistrict->id,
                 'name'      => $this->originSubDistrict->name,
             ]),
-            'destination'      => $this->whenLoaded('destinationSubDistrict', fn () => [
+            'destination'      => $this->whenLoaded('destinationSubDistrict', fn ($d) => [
                 'id'        => $this->destinationSubDistrict->id,
                 'name'      => $this->destinationSubDistrict->name,
             ]),

@@ -17,8 +17,7 @@ class UpdateUserRequest extends FormRequest
             'role_id'   => ['sometimes', 'uuid', 'exists:roles,id'],
             'name'      => ['sometimes', 'string', 'max:100'],
             'email'     => ['sometimes', 'email', "unique:users,email,{$userId}"],
-            'password'  => ['sometimes', 'string', 'min:8', 'confirmed'],
-            'is_active' => ['sometimes', 'boolean'],
+            'password'  => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
     }
 }

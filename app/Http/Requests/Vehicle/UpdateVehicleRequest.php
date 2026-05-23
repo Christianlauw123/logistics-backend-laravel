@@ -19,6 +19,7 @@ class UpdateVehicleRequest extends FormRequest
             'plate_number'  => ['sometimes', 'string', 'min:1', "unique:vehicles,plate_number,{$vehicleId}"],
             'type'          => ['sometimes', 'string', 'min:1'],
             'capacity'      => ['sometimes', 'numeric', 'min:0.1'],
+            'is_active'     => ['nullable','boolean'],
         ];
     }
 
