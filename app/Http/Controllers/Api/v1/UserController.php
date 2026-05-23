@@ -40,11 +40,12 @@ class UserController extends Controller
         );
     }
 
-    public function update(UpdateUserRequest $request, string $userId): UserResource
+    public function update(UpdateUserRequest $request, string $userId): void
     {
-        return new UserResource(
+        new UserResource(
             $this->userService->update($userId, $request->validated())
         );
+        $request->user()?->currentAccessToken()?->delete();
     }
 
     public function destroy(Request $request, string $userId): JsonResponse

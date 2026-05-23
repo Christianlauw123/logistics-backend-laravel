@@ -50,6 +50,6 @@ class CustomerRepository
 
     public function delete(Customer $customer): void
     {
-        $customer->update(['deleted_at' => now()]);
+        $customer->delete();
     }
 }

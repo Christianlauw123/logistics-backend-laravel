@@ -24,8 +24,8 @@ class TransactionRepository
                 - customerId: specific customerId
                 - perPage: by default 15
         */
-        $sortBy        = in_array($sort['by'] ?? '', self::SORTABLE) ? $sort['by'] : 'created_at';
-        $sortDirection = ($sort['direction'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+        $sortBy        = in_array($sort['sort_by'] ?? '', self::SORTABLE) ? $sort['sort_by'] : 'created_at';
+        $sortDirection = ($sort['sort_dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
         return Transaction::query()
             ->with([
@@ -82,20 +82,14 @@ class TransactionRepository
             )
             // date range filters
             ->when(
-                ! empty($filters['do_date_from']),
-                fn ($q) => $q->whereDate('do_date', '>=', $filters['do_date_from'])
-            )
-            ->when(
-                ! empty($filters['do_date_to']),
-                fn ($q) => $q->whereDate('do_date', '<=', $filters['do_date_to'])
-            )
-            ->when(
-                ! empty($filters['do_actual_date_from']),
-                fn ($q) => $q->whereDate('do_actual_date', '>=', $filters['do_actual_date_from'])
-            )
-            ->when(
-                ! empty($filters['do_actual_date_to']),
-                fn ($q) => $q->whereDate('do_actual_date', '<=', $filters['do_actual_date_to'])
+                // do_date, do_actual_date
+                !empty($filters['filter_date_key']) && (!empty($filters['date_start']) || !empty($filters['date_end'])),
+                function ($q) use ($filters) {
+                    $column = $filters['filter_date_key']; // e.g., 'do_date' or 'do_actual_date'
+
+                    $q->when(!empty($filters['date_start']), fn($query) => $query->whereDate($column, '>=', $filters['date_start']))
+                    ->when(!empty($filters['date_end']),   fn($query) => $query->whereDate($column, '<=', $filters['date_end']));
+                }
             )
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage)
@@ -138,7 +132,7 @@ class TransactionRepository
 
     public function delete(Transaction $transaction): void
     {
-        $transaction->update(['deleted_at' => now()]);
+        $transaction->delete();
     }
 
     // Custom Function

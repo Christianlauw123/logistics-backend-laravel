@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\v1\BankAccountController;
 use App\Http\Controllers\Api\v1\CityController;
 use App\Http\Controllers\Api\v1\CustomerController;
 use App\Http\Controllers\Api\v1\DistrictController;
+use App\Http\Controllers\Api\v1\RoleController;
 use App\Http\Controllers\Api\v1\SubDistrictController;
 use App\Http\Controllers\Api\v1\TransactionController;
 use App\Http\Controllers\Api\v1\TransactionDetailController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Api\v1\VehicleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+    Route::apiResource('roles', RoleController::class)->names('roles.v1')->whereUuid('role')->only(['index']);
     Route::apiResource('users', UserController::class)->names('users.v1')->whereUuid('user');
     Route::apiResource('transactions', TransactionController::class)->names('transactions.v1')->whereUuid('transaction');
     Route::apiResource('attachments', AttachmentController::class)->names('attachments.v1')->whereUuid('attachment')->except(['index', 'update']);

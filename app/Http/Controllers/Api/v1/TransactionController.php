@@ -33,10 +33,9 @@ class TransactionController extends Controller
             'dest_sub_district_id',
             'bank_account_id',
             'vehicle_id',
-            'do_date_from',
-            'do_date_to',
-            'do_actual_date_from',
-            'do_actual_date_to',
+            'date_start',
+            'date_end',
+            'filter_date_key',
             'deleted'
         ]);
 

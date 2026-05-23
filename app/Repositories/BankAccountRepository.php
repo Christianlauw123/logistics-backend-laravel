@@ -54,6 +54,6 @@ class BankAccountRepository
 
     public function delete(BankAccount $bankAccount): void
     {
-        $bankAccount->update(['deleted_at' => now()]);
+        $bankAccount->delete();
     }
 }

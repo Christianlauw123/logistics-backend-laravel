@@ -52,6 +52,6 @@ class VehicleRepository
 
     public function delete(Vehicle $vehicle): void
     {
-        $vehicle->update(['deleted_at' => now()]);
+        $vehicle->delete();
     }
 }

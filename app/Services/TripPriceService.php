@@ -51,19 +51,17 @@ class TripPriceService
     public function update(string $id, array $data): TripPrice
     {
         $tripPrice = $this->tripPriceRepository->findOrFail($id);
+        if ($tripPrice->transactions()->exists()) {
+            throw ValidationException::withMessages([
+                'trip_price' => 'Cannot update a trip price that has transactions.',
+            ]);
+        }
         return $this->tripPriceRepository->update($tripPrice, $data);
     }
 
     public function delete(string $id): void
     {
         $tripPrice = $this->tripPriceRepository->findOrFail($id);
-
-        // if ($tripPrice->transactions()->exists()) {
-        //     throw ValidationException::withMessages([
-        //         'trip_price' => 'Cannot delete a trip price that has transactions.',
-        //     ]);
-        // }
-
         $this->tripPriceRepository->delete($tripPrice);
     }
 }

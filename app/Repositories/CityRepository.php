@@ -46,6 +46,6 @@ class CityRepository
 
     public function delete(City $city): void
     {
-        $city->update(['deleted_at' => now()]);
+        $city->delete();
     }
 }

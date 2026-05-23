@@ -47,12 +47,15 @@ class UserRepository
 
     public function update(User $user, array $data): User
     {
+        if (empty($data['password']))
+            unset($data['password']);
+
         $user->update($data);
         return $user->refresh();
     }
 
     public function delete(User $user): void
     {
-        $user->update(['deleted_at' => now()]);
+        $user->delete();
     }
 }

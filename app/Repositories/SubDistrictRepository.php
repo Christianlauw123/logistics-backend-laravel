@@ -63,6 +63,6 @@ class SubDistrictRepository
 
     public function delete(SubDistrict $subDistrict): void
     {
-        $subDistrict->update(['deleted_at' => now()]);
+        $subDistrict->delete();
     }
 }
