@@ -4,8 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Transaction;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
-use phpDocumentor\Reflection\Types\Boolean;
+use Illuminate\Support\Collection;
 
 class TransactionRepository
 {
@@ -174,6 +173,77 @@ class TransactionRepository
         $transaction->file_sub_folder_id = $transactionDetailFolderId;
         $transaction->file_provider = 'google-drive';
         $transaction->save();
+    }
+
+    public function exportFunction(array $filters, array $sort = []): Collection
+    {
+        /*
+            filters
+                - search: keyword search customers.name, originSubDistrict.name. destinationSubDistrict name properties
+                - customerId: specific customerId
+                - perPage: by default 15
+        */
+        $sortBy        = in_array($sort['sort_by'] ?? '', self::SORTABLE) ? $sort['sort_by'] : 'created_at';
+        $sortDirection = ($sort['sort_dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+
+        return Transaction::query()->with(['transactionDetails'])
+            ->when(
+                ! empty($filters['search']),
+                fn ($q) => $q->where(function ($q) use ($filters) {
+                    $q->where('customer_name', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('vehicle_plate', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('vehicle_type', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('bank_account_num', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('dest_address', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('customer_name', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('note', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('origin_district', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('destination_district', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('do_number', 'ilike', "%{$filters['search']}%");
+                })
+            )
+            // exact filters
+            ->when(
+                ! empty($filters['status']),
+                fn ($q) => $q->where('status', $filters['status'])
+            )
+            ->when(
+                isset($filters['deleted']) && $filters['deleted']==true,
+                fn ($q) => $q->withTrashed()
+            )
+            ->when(
+                ! empty($filters['customer_id']),
+                fn ($q) => $q->where('customer_id', $filters['customer_id'])
+            )
+            ->when(
+                ! empty($filters['origin_sub_district_id']),
+                fn ($q) => $q->where('origin_sub_district_id', $filters['origin_sub_district_id'])
+            )
+            ->when(
+                ! empty($filters['dest_sub_district_id']),
+                fn ($q) => $q->where('dest_sub_district_id', $filters['dest_sub_district_id'])
+            )
+            ->when(
+                ! empty($filters['bank_account_id']),
+                fn ($q) => $q->where('bank_account_id', $filters['bank_account_id'])
+            )
+            ->when(
+                ! empty($filters['vehicle_id']),
+                fn ($q) => $q->where('vehicle_id', $filters['vehicle_id'])
+            )
+            // date range filters
+            ->when(
+                // do_date, do_actual_date
+                !empty($filters['filter_date_key']) && (!empty($filters['date_start']) || !empty($filters['date_end'])),
+                function ($q) use ($filters) {
+                    $column = $filters['filter_date_key']; // e.g., 'do_date' or 'do_actual_date'
+
+                    $q->when(!empty($filters['date_start']), fn($query) => $query->whereDate($column, '>=', $filters['date_start']))
+                    ->when(!empty($filters['date_end']),   fn($query) => $query->whereDate($column, '<=', $filters['date_end']));
+                }
+            )
+            ->orderBy($sortBy, $sortDirection)
+            ->get();
     }
 }
 

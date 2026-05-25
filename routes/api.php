@@ -37,6 +37,11 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     Route::get('auth/me', [AuthController::class, 'me'])->name('auth.v1.me');
     Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.v1.logout');
+
+    // Export Transaction
+    Route::post('/transactions/export', [TransactionController::class, 'export']);
+    Route::get('/transactions/export-status/{jobId}', [TransactionController::class, 'checkStatus']);
+    Route::get('/transactions/download-export/{jobId}', [TransactionController::class, 'downloadExport'])->name('transaction.download-export');
 });
 
 Route::prefix('v1')->group(function () {

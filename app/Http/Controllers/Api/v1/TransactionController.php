@@ -11,6 +11,7 @@ use App\Services\TransactionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class TransactionController extends Controller
 {
@@ -40,8 +41,8 @@ class TransactionController extends Controller
         ]);
 
         $sort = [
-            'by'        => $request->query('sort_by', 'created_at'),
-            'direction' => $request->query('sort_dir', 'desc'),
+            'sort_by'        => $request->query('sort_by', 'created_at'),
+            'sort_dir' => $request->query('sort_dir', 'desc'),
         ];
 
         $perPage = (int) ($request->query('per_page', 15) ?? 15);
@@ -101,4 +102,35 @@ class TransactionController extends Controller
         $this->transactionService->delete($transactionId);
         return response()->json(['message' => 'Transaction deleted.']);
     }
+
+    public function export(Request $request): JsonResponse
+    {
+        $filters = $request->only([
+            'search',
+            'customer_id',
+            'date_start',
+            'date_end',
+            'status',
+            'filter_date_key',
+            'vehicle_id',
+        ]);
+
+        $sort = [
+            'sort_by' => $request->query('sort_by', 'created_at'),
+            'sort_dir' => $request->query('sort_dir', 'desc'),
+        ];
+
+        return $this->transactionService->export($filters, $sort);
+    }
+
+    public function checkStatus(string $jobId): JsonResponse
+    {
+        return $this->transactionService->checkStatus($jobId);
+    }
+
+    public function downloadExport(string $jobId): BinaryFileResponse|JsonResponse
+    {
+        return $this->transactionService->downloadExport($jobId);
+    }
+
 }
