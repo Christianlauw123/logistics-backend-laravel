@@ -17,7 +17,9 @@ class CityRepository
         return City::query()
             ->when(
                 isset($filters['search']),
-                fn ($q) => $q->where('name', 'ilike', "%{$filters['search']}%")
+                fn ($q) => $q->where(function ($query) use ($filters) {
+                    $query->where('name', 'ilike', "%{$filters['search']}%");
+                })
             )
             ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,

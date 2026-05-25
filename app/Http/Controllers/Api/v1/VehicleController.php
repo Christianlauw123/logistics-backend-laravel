@@ -22,9 +22,10 @@ class VehicleController extends Controller
             per_page - int
             search - string
             deleted - boolean true / false
+            is_active - boolean true / false - > default true
         */
         $perPage = (int) ($request->query('per_page', 15) ?? 15);
-        $data = $this->vehicleService->list($request->only(['search', 'deleted', 'id']), $perPage);
+        $data = $this->vehicleService->list($request->only(['search', 'deleted', 'id', 'is_active']), $perPage);
         return response()->json($data);
     }
 

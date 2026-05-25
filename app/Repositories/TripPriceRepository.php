@@ -30,7 +30,9 @@ class TripPriceRepository
                 fn ($q) => $q->where(function ($query) use ($filters) {
                     $query->whereRelation('customer', 'name', 'ilike', "%{$filters['search']}%")
                           ->orWhereRelation('originSubDistrict', 'name', 'ilike', "%{$filters['search']}%")
-                          ->orWhereRelation('destinationSubDistrict', 'name', 'ilike', "%{$filters['search']}%");
+                          ->orWhereRelation('destinationSubDistrict', 'name', 'ilike', "%{$filters['search']}%")
+                          ->orWhereRelation('originSubDistrict.district', 'name', 'ilike', "%{$filters['search']}%")
+                          ->orWhereRelation('destinationSubDistrict.district', 'name', 'ilike', "%{$filters['search']}%");
                 })
             )
             ->when(
