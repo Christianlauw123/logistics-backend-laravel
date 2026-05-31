@@ -15,7 +15,7 @@ class UpdateTransactionDetailRequest extends FormRequest
     {
         return [
             'amount'            => ['sometimes', 'numeric', 'min:0.1'],
-            'note'              => ['sometimes', 'string'],
+            'note'              => ['nullable', 'string'],
             'purpose'           => ['sometimes', 'string'],
         ];
     }
