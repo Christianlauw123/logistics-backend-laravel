@@ -20,7 +20,7 @@ class TransactionService
     public function __construct(
         private readonly TransactionRepository $transactionRepository,
         private readonly TripPriceRepository $tripPriceRepository,
-        // private readonly GoogleDriveService $googleDriveService,
+        private readonly GoogleDriveService $googleDriveService,
     ) {}
 
     public function list(array $filters, array $sort, int $perPage): LengthAwarePaginator
@@ -66,9 +66,9 @@ class TransactionService
 
         // Set file_provider & file_folder_id to db
         // Create Folder Parent
-        // $transactionFolder = $this->googleDriveService->createFolder($subFolder);
-        // $transactionDetailFolder = $this->googleDriveService->createFolder('transaction_details', $transactionFolder);
-        // $this->transactionRepository->setGoogleDriveFolder($transaction->id, $transactionFolder, $transactionDetailFolder);
+        $transactionFolder = $this->googleDriveService->createFolder($subFolder);
+        $transactionDetailFolder = $this->googleDriveService->createFolder('transaction_details', $transactionFolder);
+        $this->transactionRepository->setGoogleDriveFolder($transaction->id, $transactionFolder, $transactionDetailFolder);
 
         return $transaction;
     }
@@ -107,7 +107,7 @@ class TransactionService
         if($transaction->do_number !== null)
             $subFolder = $transaction->do_number;
         $subFolder = 'transactions;'.$transaction->do_date.';'.$subFolder.';'.$transaction->customer_name.';'.$transaction->id;
-        // $this->googleDriveService->renameFolder($transaction->file_folder_id, $subFolder);
+        $this->googleDriveService->renameFolder($transaction->file_folder_id, $subFolder);
 
         return $transaction;
     }
@@ -141,8 +141,8 @@ class TransactionService
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
         // Business rule: only SUBMITTED can be deleted
-        // if($transaction->file_folder_id)
-        //     $this->googleDriveService->delete($transaction->file_folder_id);
+        if($transaction->file_folder_id)
+            $this->googleDriveService->delete($transaction->file_folder_id);
 
         $this->transactionRepository->delete($transaction);
     }
