@@ -156,14 +156,16 @@ class TransactionRepository
         $transaction->save();
     }
 
-    public function preCalculateCurrentTransactionTotal(string $transactionId, float $amount){
+    public function preCalculateCurrentTransactionTotal(string $transactionId, ?float $amount = null): array {
         $transaction = $this->findByIdOrFail($transactionId)->refresh();
         $transactionDetails = $transaction->transactionDetails->whereIn('status', ['SUBMITTED', 'APPROVED', 'DONE']);
         $total = $transactionDetails ? $transactionDetails->sum('amount') : 0;
 
         $state = true;
-        if ($total + $amount > $transaction->trip_price_amount || $total + $amount < 0)
-            $state = false;
+        if ($amount !== null) {
+            if ($total + $amount > $transaction->trip_price_amount || $total + $amount < 0)
+                $state = false;
+        }
         return ['state' => $state, 'trip_price_amount' => $transaction->trip_price_amount, 'current_total' => $total];
     }
 

@@ -25,7 +25,8 @@ class UpdateBankAccountRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'account_identifier_number.unique' => 'This account_identifier_number number already exists.',
+            'account_identifier_number.unique' => 'Nomor unik akun ini sudah ada',
+            'account_identifier_number.required' => 'Nomor unik akun harus diisi',
         ];
     }
 }

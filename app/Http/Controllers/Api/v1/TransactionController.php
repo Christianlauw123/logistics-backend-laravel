@@ -133,4 +133,11 @@ class TransactionController extends Controller
         return $this->transactionService->downloadExport($jobId);
     }
 
+    public function getCurrentTransactionLimit(string $transactionId): JsonResponse
+    {
+        return response()->json(
+            $this->transactionService->getCurrentTransactionLimit($transactionId)
+        );
+    }
+
 }

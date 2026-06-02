@@ -76,18 +76,18 @@ class TransactionService
     public function update(string $id, array $data): Transaction
     {
         // Check TripPrice if exists
-        $filters = [
-            'customer_id' => $data['customer_id'],
-            'origin_sub_district_id' => $data['origin_sub_district_id'],
-            'dest_sub_district_id' => $data['dest_sub_district_id']
-        ];
-        $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
+        // $filters = [
+        //     'customer_id' => $data['customer_id'],
+        //     'origin_sub_district_id' => $data['origin_sub_district_id'],
+        //     'dest_sub_district_id' => $data['dest_sub_district_id']
+        // ];
+        // $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
 
-        if (count($tripPriceCheck->items()) <= 0) {
-            throw ValidationException::withMessages([
-                'trip_price' => 'Base price for this customer and route not exists.',
-            ]);
-        }
+        // if (count($tripPriceCheck->items()) <= 0) {
+        //     throw ValidationException::withMessages([
+        //         'trip_price' => 'Base price for this customer and route not exists.',
+        //     ]);
+        // }
 
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
@@ -147,6 +147,12 @@ class TransactionService
         $this->transactionRepository->delete($transaction);
     }
 
+    // Get Current Transaction Limit - Remaining
+    public function getCurrentTransactionLimit(string $id): array
+    {
+        return $this->transactionRepository->preCalculateCurrentTransactionTotal($id);
+    }
+
     // Export Services
     public function export(array $filters, array $sort): JsonResponse
     {
@@ -169,9 +175,6 @@ class TransactionService
         return $this->transactionRepository->exportFunction($filters, $sort);
     }
 
-    /**
-     * Check export status
-     */
     public function checkStatus(string $jobId): JsonResponse
     {
         $filePath = "exports/transactions/{$jobId}.xlsx";
@@ -199,9 +202,6 @@ class TransactionService
         ]);
     }
 
-    /**
-     * Download the exported file
-     */
     public function downloadExport(string $jobId): BinaryFileResponse|JsonResponse
     {
         $filePath = "exports/transactions/{$jobId}.xlsx";
@@ -219,9 +219,6 @@ class TransactionService
         return response()->download($absolutePath, $fileName);
     }
 
-    /**
-     * Clean up old export files (run via scheduled command)
-     */
     public static function cleanupOldExports(): void
     {
         $exportsPath = 'exports/transactions';

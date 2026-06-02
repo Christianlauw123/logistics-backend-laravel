@@ -23,7 +23,8 @@ class UpdateTransactionDetailRequest extends FormRequest
     public function messages(): array
     {
         return [
-
+            'amount.numeric' => 'Jumlah harus berupa angka',
+            'amount.min' => 'Jumlah harus bernilai positif',
         ];
     }
 }

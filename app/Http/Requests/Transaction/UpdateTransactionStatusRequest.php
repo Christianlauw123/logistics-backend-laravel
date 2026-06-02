@@ -18,4 +18,13 @@ class UpdateTransactionStatusRequest extends FormRequest
             'status' => ['required', Rule::in(['SUBMITTED', 'APPROVED', 'DONE', 'CANCELLED', 'REJECTED'])],
         ];
     }
+
+
+    public function messages(): array
+    {
+        return [
+            'status.required' => 'Status harus ada',
+            'status.in' => 'Status tidak valid',
+        ];
+    }
 }

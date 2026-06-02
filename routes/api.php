@@ -38,12 +38,13 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('auth/me', [AuthController::class, 'me'])->name('auth.v1.me');
     Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.v1.logout');
 
+    Route::get('/transactions/{transaction}/current-limit', [TransactionController::class, 'getCurrentTransactionLimit'])->name('transactions.v1.current_limit')->whereUuid('transaction');
     // Export Transaction
-    Route::post('/transactions/export', [TransactionController::class, 'export']);
-    Route::get('/transactions/export-status/{jobId}', [TransactionController::class, 'checkStatus']);
-    Route::get('/transactions/download-export/{jobId}', [TransactionController::class, 'downloadExport'])->name('transaction.download-export');
+    Route::post('/transactions/export', [TransactionController::class, 'export'])->name('transactions.v1.export');
+    Route::get('/transactions/export-status/{jobId}', [TransactionController::class, 'checkStatus'])->name('transactions.v1.export_status');
+    Route::get('/transactions/download-export/{jobId}', [TransactionController::class, 'downloadExport'])->name('transactions.v1.download_export');
 
-    Route::get('/trip_prices/sub_districts', [TripPriceController::class, 'listTripAllowedSubDistricts']);
+    Route::get('/trip_prices/sub_districts', [TripPriceController::class, 'listTripAllowedSubDistricts'])->name('trip_price.v1.listTripAllowedSubDistricts');
 });
 
 Route::prefix('v1')->group(function () {
