@@ -18,15 +18,15 @@ class VehicleRepository
         */
         return Vehicle::query()
             ->when(
+                isset($filters['id']),
+                fn ($q) => $q->where('vehicles.id', $filters['id'])
+            )
+            ->when(
                 isset($filters['search']),
                 fn ($q) => $q->where(function ($query) use ($filters) {
                     $query->where('vehicles.plate_number', 'ilike', "%{$filters['search']}%")
                     ->orWhere('vehicles.name', 'ilike', "%{$filters['search']}%");
                 })
-            )
-            ->when(
-                isset($filters['id']),
-                fn ($q) => $q->where('vehicles.id', $filters['id'])
             )
             ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,

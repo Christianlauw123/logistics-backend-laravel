@@ -16,14 +16,14 @@ class CustomerRepository
         */
         return Customer::query()
             ->when(
+                isset($filters['id']),
+                fn ($q) => $q->where('id', $filters['id'])
+            )
+            ->when(
                 isset($filters['search']),
                 fn ($q) => $q->where(function ($query) use ($filters) {
                     $query->where('name', 'ilike', "%{$filters['search']}%");
                 })
-            )
-            ->when(
-                isset($filters['id']),
-                fn ($q) => $q->where('id', $filters['id'])
             )
             ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,

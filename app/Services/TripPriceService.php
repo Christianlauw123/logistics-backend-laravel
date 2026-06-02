@@ -21,7 +21,7 @@ class TripPriceService
 
     public function listByCustomer(string $customerId): LengthAwarePaginator
     {
-        return $this->tripPriceRepository->paginate(['customerId' => $customerId]);
+        return $this->tripPriceRepository->paginate(['customer_id' => $customerId]);
     }
 
     public function findOrFail(string $id): TripPrice
@@ -63,5 +63,40 @@ class TripPriceService
     {
         $tripPrice = $this->tripPriceRepository->findOrFail($id);
         $this->tripPriceRepository->delete($tripPrice);
+    }
+
+    /**
+     * List allowed sub-districts for a given customer and optional origin sub-district.
+     * Returning destination sub-districts if origin is provided, otherwise returning origin sub-districts.
+     */
+    public function listTripPriceSubDistricts(array $filters): Collection
+    {
+        $originSubDistricts = null;
+        $results = [];
+
+        $originId = $filters['origin_sub_district_id'] ?? null;
+
+        $originSubDistricts = $this->tripPriceRepository->paginate($filters);
+
+        $results = $originSubDistricts->through(function ($item) use ($originId) {
+            $data = null;
+            if ($originId != null)
+                $data = $item->destinationSubDistrict;
+            else
+                $data = $item->originSubDistrict;
+
+            return [
+                'id'   => $data->id,
+                'name' => $data->name,
+                'district' => [
+                    'id' => $data->district->id,
+                    'name' => $data->district->name,
+                ]
+            ];
+        });
+
+        // Get the underlying collection, make it unique by 'id', and reset array keys
+        $uniqueData = $results->getCollection()->unique('id')->values();
+        return Collection::make(['data' => $uniqueData]);
     }
 }

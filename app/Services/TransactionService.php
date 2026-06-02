@@ -164,6 +164,11 @@ class TransactionService
         ], 202); // 202 Accepted
     }
 
+    public function getExportData(array $filters, array $sort): Collection
+    {
+        return $this->transactionRepository->exportFunction($filters, $sort);
+    }
+
     /**
      * Check export status
      */

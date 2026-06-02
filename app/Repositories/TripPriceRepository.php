@@ -26,18 +26,8 @@ class TripPriceRepository
                 'destinationSubDistrict.district:id,name'
             ])
             ->when(
-                isset($filters['search']),
-                fn ($q) => $q->where(function ($query) use ($filters) {
-                    $query->whereRelation('customer', 'name', 'ilike', "%{$filters['search']}%")
-                          ->orWhereRelation('originSubDistrict', 'name', 'ilike', "%{$filters['search']}%")
-                          ->orWhereRelation('destinationSubDistrict', 'name', 'ilike', "%{$filters['search']}%")
-                          ->orWhereRelation('originSubDistrict.district', 'name', 'ilike', "%{$filters['search']}%")
-                          ->orWhereRelation('destinationSubDistrict.district', 'name', 'ilike', "%{$filters['search']}%");
-                })
-            )
-            ->when(
-                isset($filters['customerId']),
-                fn ($q) => $q->where('customer_id', $filters['customerId'])
+                isset($filters['customer_id']),
+                fn ($q) => $q->where('customer_id', $filters['customer_id'])
             )
 
             ->when(
@@ -48,6 +38,16 @@ class TripPriceRepository
             ->when(
                 isset($filters['dest_sub_district_id']),
                 fn ($q) => $q->where('dest_sub_district_id', $filters['dest_sub_district_id'])
+            )
+            ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where(function ($query) use ($filters) {
+                    $query->whereRelation('customer', 'name', 'ilike', "%{$filters['search']}%")
+                          ->orWhereRelation('originSubDistrict', 'name', 'ilike', "%{$filters['search']}%")
+                          ->orWhereRelation('destinationSubDistrict', 'name', 'ilike', "%{$filters['search']}%")
+                          ->orWhereRelation('originSubDistrict.district', 'name', 'ilike', "%{$filters['search']}%")
+                          ->orWhereRelation('destinationSubDistrict.district', 'name', 'ilike', "%{$filters['search']}%");
+                })
             )
             ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,

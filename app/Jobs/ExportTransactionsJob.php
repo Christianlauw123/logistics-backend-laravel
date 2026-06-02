@@ -2,8 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\Transaction;
-use App\Repositories\TransactionRepository;
+use App\Services\TransactionService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -29,7 +28,7 @@ class ExportTransactionsJob implements ShouldQueue
     public $tries = 3;
     public $backoff = [60, 120]; // Retry delays in seconds
 
-    private readonly TransactionRepository $transactionRepository;
+    private readonly TransactionService $transactionService;
     /**
      * Create a new job instance.
      */
@@ -39,7 +38,7 @@ class ExportTransactionsJob implements ShouldQueue
         $this->sort = $sort;
         $this->filePath = $filePath;
         $this->jobId = $jobId;
-        $this->transactionRepository = app(TransactionRepository::class);
+        $this->transactionService = app(TransactionService::class);
     }
 
     /**
@@ -49,7 +48,7 @@ class ExportTransactionsJob implements ShouldQueue
     {
         try {
             // Build query with filters, Get all transactions (no pagination for export)
-            $transactions = $this->transactionRepository->exportFunction($this->filters, $this->sort);
+            $transactions = $this->transactionService->getExportData($this->filters, $this->sort);
 
             // Create spreadsheet
             $spreadsheet = new Spreadsheet();
@@ -162,24 +161,5 @@ class ExportTransactionsJob implements ShouldQueue
             // Optionally re-throw to trigger retry
             // throw $exception;
         }
-    }
-
-    public function failed(Throwable $exception)
-    {
-        $errorStatus = [
-            'status' => 'failed',
-            'job_id' => $this->jobId,
-            'error' => 'Job failed after multiple retries',
-            'timestamp' => now(),
-        ];
-
-        Storage::disk('local')->put(
-            "exports/transactions/{$this->jobId}.status",
-            json_encode($errorStatus)
-        );
-
-        Log::error("Export job {$this->jobId} permanently failed", [
-            'error' => $exception->getMessage(),
-        ]);
     }
 }

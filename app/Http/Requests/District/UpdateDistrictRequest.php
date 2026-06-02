@@ -15,7 +15,7 @@ class UpdateDistrictRequest extends FormRequest
     {
         $districtId = $this->route('district');
         return [
-            'name'      => ['sometimes', 'string', 'min:1', "unique:districts,name,{$districtId}"],
+            'name'      => ['required', 'string', 'min:1', "unique:districts,name,{$districtId}"],
             // 'city_id'   => ['sometimes', 'uuid', 'exists:cities,id'],
         ];
     }

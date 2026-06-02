@@ -42,6 +42,8 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::post('/transactions/export', [TransactionController::class, 'export']);
     Route::get('/transactions/export-status/{jobId}', [TransactionController::class, 'checkStatus']);
     Route::get('/transactions/download-export/{jobId}', [TransactionController::class, 'downloadExport'])->name('transaction.download-export');
+
+    Route::get('/trip_prices/sub_districts', [TripPriceController::class, 'listTripAllowedSubDistricts']);
 });
 
 Route::prefix('v1')->group(function () {

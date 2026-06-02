@@ -16,6 +16,10 @@ class BankAccountRepository
         */
         return BankAccount::query()
             ->when(
+                isset($filters['id']),
+                fn ($q) => $q->where('id', $filters['id'])
+            )
+            ->when(
                 isset($filters['search']),
                 fn ($q) => $q->where(function ($query) use ($filters) {
                     $query->where('bank_name', 'ilike', "%{$filters['search']}%")
@@ -23,10 +27,6 @@ class BankAccountRepository
                           ->orWhere('account_number', 'ilike', "%{$filters['search']}%")
                           ->orWhere('account_name', 'ilike', "%{$filters['search']}%");
                 })
-            )
-            ->when(
-                isset($filters['id']),
-                fn ($q) => $q->where('id', $filters['id'])
             )
             ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,

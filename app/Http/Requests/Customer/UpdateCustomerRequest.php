@@ -13,9 +13,9 @@ class UpdateCustomerRequest extends FormRequest
         $customerId = $this->route('customer');
 
         return [
-            'name'     => ['sometimes', 'string', 'max:100', "unique:customers,name,{$customerId}"],
-            'phone' => ['sometimes', 'string', 'max:100'],
-            'address' => ['sometimes', 'string', 'max:100'],
+            'name'     => ['required', 'string', 'max:100', "unique:customers,name,{$customerId}"],
+            'phone' => ['nullable', 'string', 'max:100'],
+            'address' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

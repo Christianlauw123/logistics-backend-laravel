@@ -34,30 +34,10 @@ class TransactionRepository
                 'bankAccount',
                 'vehicle',
             ])
-            // keyword search across related names
-            ->when(
-                ! empty($filters['search']),
-                fn ($q) => $q->where(function ($q) use ($filters) {
-                    $q->where('customer_name', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('vehicle_plate', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('vehicle_type', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('bank_account_num', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('dest_address', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('customer_name', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('note', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('origin_district', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('destination_district', 'ilike', "%{$filters['search']}%")
-                      ->orWhere('do_number', 'ilike', "%{$filters['search']}%");
-                })
-            )
             // exact filters
             ->when(
                 ! empty($filters['status']),
                 fn ($q) => $q->where('status', $filters['status'])
-            )
-            ->when(
-                isset($filters['deleted']) && $filters['deleted']==true,
-                fn ($q) => $q->withTrashed()
             )
             ->when(
                 ! empty($filters['customer_id']),
@@ -89,6 +69,26 @@ class TransactionRepository
                     $q->when(!empty($filters['date_start']), fn($query) => $query->whereDate($column, '>=', $filters['date_start']))
                     ->when(!empty($filters['date_end']),   fn($query) => $query->whereDate($column, '<=', $filters['date_end']));
                 }
+            )
+            // keyword search across related names
+            ->when(
+                ! empty($filters['search']),
+                fn ($q) => $q->where(function ($q) use ($filters) {
+                    $q->where('customer_name', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('vehicle_plate', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('vehicle_type', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('bank_account_num', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('dest_address', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('customer_name', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('note', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('origin_district', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('destination_district', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('do_number', 'ilike', "%{$filters['search']}%");
+                })
+            )
+            ->when(
+                isset($filters['deleted']) && $filters['deleted']==true,
+                fn ($q) => $q->withTrashed()
             )
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage)
