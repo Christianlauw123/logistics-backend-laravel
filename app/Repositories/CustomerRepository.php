@@ -16,12 +16,14 @@ class CustomerRepository
         */
         return Customer::query()
             ->when(
-                isset($filters['search']),
-                fn ($q) => $q->where('name', 'ilike', "%{$filters['search']}%")
-            )
-            ->when(
                 isset($filters['id']),
                 fn ($q) => $q->where('id', $filters['id'])
+            )
+            ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where(function ($query) use ($filters) {
+                    $query->where('name', 'ilike', "%{$filters['search']}%");
+                })
             )
             ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,
@@ -50,6 +52,6 @@ class CustomerRepository
 
     public function delete(Customer $customer): void
     {
-        $customer->update(['deleted_at' => now()]);
+        $customer->delete();
     }
 }

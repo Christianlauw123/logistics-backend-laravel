@@ -15,17 +15,18 @@ class UpdateBankAccountRequest extends FormRequest
     {
         $bankAccountId = $this->route('bank_account');
         return [
-            'bank_name'                 => ['sometimes', 'string', 'min:1'],
+            'bank_name'                 => ['nullable', 'string', 'min:1'],
             'account_identifier_number' => ['required', 'string', "unique:bank_accounts,account_identifier_number,{$bankAccountId}"],
-            'account_name'              => ['sometimes', 'string', 'min:1'],
-            'account_number'            => ['sometimes', 'string', 'min:1'],
+            'account_name'              => ['nullable', 'string', 'min:1'],
+            'account_number'            => ['nullable', 'string', 'min:1'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'account_identifier_number.unique' => 'This account_identifier_number number already exists.',
+            'account_identifier_number.unique' => 'Nomor unik akun ini sudah ada',
+            'account_identifier_number.required' => 'Nomor unik akun harus diisi',
         ];
     }
 }

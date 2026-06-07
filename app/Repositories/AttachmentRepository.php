@@ -31,6 +31,6 @@ class AttachmentRepository
 
     public function delete(Attachment $attachment): void
     {
-        $attachment->update(['deleted_at' => now()]);
+        $attachment->delete();
     }
 }

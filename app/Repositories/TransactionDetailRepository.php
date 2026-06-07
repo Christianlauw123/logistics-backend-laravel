@@ -44,7 +44,7 @@ class TransactionDetailRepository
 
     public function delete(TransactionDetail $transactionDetail): void
     {
-        $transactionDetail->update(['deleted_at' => now()]);
+        $transactionDetail->delete();
     }
 
     public function prePopulateCreateTransactionDetail(string $transactionDetailId): void {

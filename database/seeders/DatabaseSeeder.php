@@ -17,7 +17,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // All can do
         $role_admin = Role::create(['name' => 'Super Admin']);
+        // The one who can manage transactions
+        // Create Request Trip Information, but not manage Do Number & Actual Date, Attachment
+        $operational = Role::create(['name' => 'Operational']);
+        // Manage Do Number & Actual Date, Attachment
         $staff = Role::create(['name' => 'Staff']);
 
         User::create([
@@ -32,6 +37,15 @@ class DatabaseSeeder extends Seeder
             'email'    => 'staff@logistics.com',
             'password' => Hash::make('password123'),
             'role_id' => $staff->id
+        ]);
+
+
+
+        User::create([
+            'name'     => 'Operational',
+            'email'    => 'operational@logistics.com',
+            'password' => Hash::make('password123'),
+            'role_id' => $operational->id
         ]);
 
         $this->call([

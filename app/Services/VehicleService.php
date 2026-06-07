@@ -31,11 +31,11 @@ class VehicleService
     public function update(string $id, array $data): Vehicle
     {
         $vehicle = $this->vehicleRepository->findOrFail($id);
-        if ($vehicle->transactions()->exists()) {
-            throw ValidationException::withMessages([
-                'vehicle' => 'Cannot update a vehicle that has transactions.',
-            ]);
-        }
+        // if ($vehicle->transactions()->exists()) {
+        //     throw ValidationException::withMessages([
+        //         'vehicle' => 'Cannot update a vehicle that has transactions.',
+        //     ]);
+        // }
         return $this->vehicleRepository->update($vehicle, $data);
     }
 

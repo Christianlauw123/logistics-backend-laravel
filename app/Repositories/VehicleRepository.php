@@ -14,20 +14,27 @@ class VehicleRepository
             per_page - int
             search - string
             deleted - boolean true / false
+            is_active - boolean true / false - > default true
         */
         return Vehicle::query()
-            ->when(
-                isset($filters['search']),
-                fn ($q) => $q->where('vehicles.plate_number', 'ilike', "%{$filters['search']}%")
-                    ->orWhere('vehicles.name', 'ilike', "%{$filters['search']}%")
-            )
             ->when(
                 isset($filters['id']),
                 fn ($q) => $q->where('vehicles.id', $filters['id'])
             )
             ->when(
+                isset($filters['search']),
+                fn ($q) => $q->where(function ($query) use ($filters) {
+                    $query->where('vehicles.plate_number', 'ilike', "%{$filters['search']}%")
+                    ->orWhere('vehicles.name', 'ilike', "%{$filters['search']}%");
+                })
+            )
+            ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
+            )
+            ->when(
+                isset($filters['is_active']),
+                fn ($q) => $q->where('vehicles.is_active', $filters['is_active'] === 'true' ? true : false)
             )
             ->orderBy('vehicles.plate_number')
             ->paginate($perPage)
@@ -52,6 +59,6 @@ class VehicleRepository
 
     public function delete(Vehicle $vehicle): void
     {
-        $vehicle->update(['deleted_at' => now()]);
+        $vehicle->delete();
     }
 }

@@ -24,7 +24,9 @@ class StoreTransactionDetailRequest extends FormRequest
     public function messages(): array
     {
         return [
-
+            'amount.required' => 'Jumlah harus diisi',
+            'amount.numeric' => 'Jumlah harus berupa angka',
+            'amount.min' => 'Jumlah harus bernilai positif',
         ];
     }
 }

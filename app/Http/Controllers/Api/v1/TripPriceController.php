@@ -20,13 +20,13 @@ class TripPriceController extends Controller
         /* params
             per_page - int
             search - string
-            customerId - uuid
+            customer_id - uuid
             isActive - boolean
             deleted - boolean true / false
         */
         $perPage = (int) ($request->query('per_page', 15) ?? 15);
 
-        $data = $this->tripPriceService->list($request->only(['search', 'customerId', 'isActive', 'deleted']), $perPage);
+        $data = $this->tripPriceService->list($request->only(['search', 'customer_id', 'is_active', 'deleted']), $perPage);
         return response()->json($data);
     }
 
@@ -55,5 +55,11 @@ class TripPriceController extends Controller
     {
         $this->tripPriceService->delete($tripPriceId);
         return response()->json(['message' => 'Deleted.']);
+    }
+
+    public function listTripAllowedSubDistricts(Request $request): JsonResponse
+    {
+        $data = $this->tripPriceService->listTripPriceSubDistricts($request->only('search', 'customer_id', 'origin_sub_district_id'));
+        return response()->json($data);
     }
 }

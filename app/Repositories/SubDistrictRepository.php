@@ -21,19 +21,19 @@ class SubDistrictRepository
                 'district:id,name'
             ])
             ->when(
-                isset($filters['search']),
-                fn ($q) => $q->where(function ($query) use ($filters) {
-                    $query->where('sub_districts.name', 'ilike', "%{$filters['search']}%")
-                          ->orWhereRelation('district', 'name', 'ilike', "%{$filters['search']}%");
-                })
+                isset($filters['id']),
+                fn ($q) => $q->where('id', $filters['id'])
             )
             ->when(
                 isset($filters['districtId']),
                 fn ($q) => $q->where('district_id', $filters['districtId'])
             )
             ->when(
-                isset($filters['id']),
-                fn ($q) => $q->where('id', $filters['id'])
+                isset($filters['search']),
+                fn ($q) => $q->where(function ($query) use ($filters) {
+                    $query->where('sub_districts.name', 'ilike', "%{$filters['search']}%")
+                          ->orWhereRelation('district', 'name', 'ilike', "%{$filters['search']}%");
+                })
             )
             ->when(
                 isset($filters['deleted']) && $filters['deleted']==true,
@@ -63,6 +63,6 @@ class SubDistrictRepository
 
     public function delete(SubDistrict $subDistrict): void
     {
-        $subDistrict->update(['deleted_at' => now()]);
+        $subDistrict->delete();
     }
 }

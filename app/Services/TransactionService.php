@@ -2,12 +2,18 @@
 
 namespace App\Services;
 
+use App\Jobs\ExportTransactionsJob;
 use App\Models\Transaction;
 use App\Repositories\TransactionRepository;
 use App\Repositories\TripPriceRepository;
 use App\Services\ExternalServices\GoogleDriveService;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class TransactionService
 {
@@ -70,18 +76,18 @@ class TransactionService
     public function update(string $id, array $data): Transaction
     {
         // Check TripPrice if exists
-        $filters = [
-            'customer_id' => $data['customer_id'],
-            'origin_sub_district_id' => $data['origin_sub_district_id'],
-            'dest_sub_district_id' => $data['dest_sub_district_id']
-        ];
-        $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
+        // $filters = [
+        //     'customer_id' => $data['customer_id'],
+        //     'origin_sub_district_id' => $data['origin_sub_district_id'],
+        //     'dest_sub_district_id' => $data['dest_sub_district_id']
+        // ];
+        // $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
 
-        if (count($tripPriceCheck->items()) <= 0) {
-            throw ValidationException::withMessages([
-                'trip_price' => 'Base price for this customer and route not exists.',
-            ]);
-        }
+        // if (count($tripPriceCheck->items()) <= 0) {
+        //     throw ValidationException::withMessages([
+        //         'trip_price' => 'Base price for this customer and route not exists.',
+        //     ]);
+        // }
 
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
@@ -140,4 +146,93 @@ class TransactionService
 
         $this->transactionRepository->delete($transaction);
     }
+
+    // Get Current Transaction Limit - Remaining
+    public function getCurrentTransactionLimit(string $id): array
+    {
+        return $this->transactionRepository->preCalculateCurrentTransactionTotal($id);
+    }
+
+    // Export Services
+    public function export(array $filters, array $sort): JsonResponse
+    {
+        // Create unique job ID
+        $jobId = uniqid('export_transactions', true);
+        $filePath = "exports/transactions/{$jobId}.xlsx";
+
+        // Dispatch the export job to the queue
+        ExportTransactionsJob::dispatch($filters, $sort, $filePath, $jobId)->onQueue('exports-transactions'); // Use a dedicated queue
+
+        return response()->json([
+            'success' => true,
+            'job_id' => $jobId,
+            'message' => 'Export job queued. Check status with this job ID.',
+        ], 202); // 202 Accepted
+    }
+
+    public function getExportData(array $filters, array $sort): Collection
+    {
+        return $this->transactionRepository->exportFunction($filters, $sort);
+    }
+
+    public function checkStatus(string $jobId): JsonResponse
+    {
+        $filePath = "exports/transactions/{$jobId}.xlsx";
+        $statusPath = "exports/transactions/{$jobId}.status";
+
+        // Check if export is complete
+        if (Storage::disk('local')->exists($filePath)) {
+            Storage::disk('local')->delete($statusPath);
+            return response()->json([
+                'status' => 'completed',
+                'job_id' => $jobId,
+            ]);
+        }
+
+        // Check if there's an error status file
+        if (Storage::disk('local')->exists($statusPath)) {
+            $status = json_decode(Storage::disk('local')->get($statusPath), true);
+            return response()->json($status);
+        }
+
+        // Still processing
+        return response()->json([
+            'status' => 'processing',
+            'job_id' => $jobId,
+        ]);
+    }
+
+    public function downloadExport(string $jobId): BinaryFileResponse|JsonResponse
+    {
+        $filePath = "exports/transactions/{$jobId}.xlsx";
+
+        if (!Storage::disk('local')->exists($filePath)) {
+            return response()->json([
+                'error' => 'Export file not found. It may have expired.',
+            ], 404);
+        }
+
+        $fileName = "transactions-" . date('Y-m-d', strtotime(pathinfo($filePath, PATHINFO_FILENAME))) . ".xlsx";
+
+        $absolutePath = Storage::disk('local')->path($filePath);
+
+        return response()->download($absolutePath, $fileName);
+    }
+
+    public static function cleanupOldExports(): void
+    {
+        $exportsPath = 'exports/transactions';
+        $files = Storage::disk('local')->files($exportsPath);
+
+        foreach ($files as $file) {
+            $fileTime = Storage::disk('local')->lastModified($file);
+            $now = time();
+
+            // Delete files older than 24 hours
+            if (($now - $fileTime) > 86400) {
+                Storage::disk('local')->delete($file);
+            }
+        }
+    }
+    // End of Export Services
 }

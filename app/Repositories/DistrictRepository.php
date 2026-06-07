@@ -49,6 +49,6 @@ class DistrictRepository
 
     public function delete(District $district): void
     {
-        $district->update(['deleted_at' => now()]);
+        $district->delete();
     }
 }

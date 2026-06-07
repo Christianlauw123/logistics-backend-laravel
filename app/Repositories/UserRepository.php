@@ -56,6 +56,6 @@ class UserRepository
 
     public function delete(User $user): void
     {
-        $user->update(['deleted_at' => now()]);
+        $user->delete();
     }
 }
