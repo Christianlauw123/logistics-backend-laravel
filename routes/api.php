@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\v1\AttachmentController;
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\BankAccountController;
-use App\Http\Controllers\Api\v1\CityController;
+use App\Http\Controllers\Api\v1\DriverController;
 use App\Http\Controllers\Api\v1\CustomerController;
 use App\Http\Controllers\Api\v1\DistrictController;
 use App\Http\Controllers\Api\v1\RoleController;
@@ -29,6 +29,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::apiResource('transaction_details', TransactionDetailController::class)->names('transaction_details.v1')->whereUuid('transaction_detail')->except(['index']);
     Route::apiResource('trip_prices', TripPriceController::class)->names('trip_prices.v1')->whereUuid('trip_price');
     Route::apiResource('vehicles', VehicleController::class)->names('vehicles.v1')->whereUuid('vehicle');
+    Route::apiResource('drivers', DriverController::class)->names('drivers.v1')->whereUuid('driver');
 
     // Extra: status update as a separate endpoint (PATCH, not PUT)
     Route::patch('transactions/{transaction}/status', [TransactionController::class, 'updateStatus'])->name('transactions.v1.update_status')->whereUuid('transaction');

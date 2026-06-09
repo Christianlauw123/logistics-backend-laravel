@@ -24,6 +24,7 @@ class StoreTransactionRequest extends FormRequest
             'transaction_items'         => ['nullable', 'string', 'max:255'],
             'origin_sub_district_id'    => ['required', 'uuid', 'exists:sub_districts,id'],
             'dest_sub_district_id'      => ['required', 'uuid', 'exists:sub_districts,id'],
+            'driver_id'                 => ['required', 'uuid', 'exists:drivers,id'],
             'note'                      => ['nullable', 'string'],
         ];
     }
@@ -50,6 +51,9 @@ class StoreTransactionRequest extends FormRequest
             'dest_sub_district_id.required' => 'Kecamatan tujuan harus diisi',
             'dest_sub_district_id.uuid' => 'Kecamatan tujuan tidak valid',
             'dest_sub_district_id.exists' => 'Kecamatan tujuan tidak ditemukan',
+            'driver_id.required' => 'Driver harus diisi',
+            'driver_id.uuid' => 'Driver tidak valid',
+            'driver_id.exists' => 'Driver tidak ditemukan',
         ];
     }
 }

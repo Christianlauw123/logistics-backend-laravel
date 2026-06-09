@@ -14,9 +14,9 @@ class UpdateTransactionDetailRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount'            => ['sometimes', 'numeric', 'min:0.1'],
-            'note'              => ['sometimes', 'string'],
-            'purpose'           => ['sometimes', 'string'],
+            'amount'            => ['required', 'numeric', 'min:0.1'],
+            'note'              => ['nullable', 'string'],
+            'purpose'           => ['nullable', 'string'],
         ];
     }
 

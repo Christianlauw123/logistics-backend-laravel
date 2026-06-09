@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Jobs\ExportTransactionsJob;
 use App\Models\Transaction;
+use App\Repositories\TransactionDetailRepository;
 use App\Repositories\TransactionRepository;
 use App\Repositories\TripPriceRepository;
 use App\Services\ExternalServices\GoogleDriveService;
@@ -19,6 +20,7 @@ class TransactionService
 {
     public function __construct(
         private readonly TransactionRepository $transactionRepository,
+        private readonly TransactionDetailRepository $transactionDetailRepository,
         private readonly TripPriceRepository $tripPriceRepository,
         private readonly GoogleDriveService $googleDriveService,
     ) {}
@@ -30,7 +32,14 @@ class TransactionService
 
     public function findOrFail(string $id): Transaction
     {
-        return $this->transactionRepository->findByIdOrFail($id);
+        $transaction = $this->transactionRepository->findByIdOrFail($id);
+
+        // Calculate the additional data
+        $additionalData = $this->getCurrentTransactionLimit($id);
+
+        // Dynamically attach it to the model instance
+        $transaction->setAttribute('current_total', $additionalData['current_total']);
+        return $transaction->refresh();
     }
 
     public function create(array $data, string $userId): Transaction
@@ -54,6 +63,21 @@ class TransactionService
             ->toArray();
 
         $transaction = $this->transactionRepository->create($transactionData);
+
+        // Add Driver Commission
+        $this->transactionDetailRepository->create([
+            'purpose' => 'TABUNGAN',
+            'amount' => 0,
+            'transaction_id' => $transaction->id,
+            'status' => 'SUBMITTED'
+        ]);
+        // Add Driver Claim
+        $this->transactionDetailRepository->create([
+            'purpose' => 'CLAIM',
+            'amount' => 0,
+            'transaction_id' => $transaction->id,
+            'status' => 'SUBMITTED'
+        ]);
 
         // Create Drive Folder
         $subFolder = 'PENDING_DO_NUMBER';
