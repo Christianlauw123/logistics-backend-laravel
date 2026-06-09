@@ -19,7 +19,25 @@ services:
                 condition: service_healthy
         networks:
             - logistics_network
-
+    scheduler:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+        container_name: laravel_scheduler
+        restart: unless-stopped
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+            - ./storage:/var/www/html/storage
+            - /var/www/html/vendor
+        env_file:
+            - .env
+        depends_on:
+            - redis
+            - postgres
+        networks:
+            - logistics_network
+        command: php artisan schedule:work
     postgres:
         image: postgres:17-alpine
         container_name: logistics_postgres
@@ -37,9 +55,27 @@ services:
             retries: 5
         networks:
             - logistics_network
+    redis:
+        image: redis:7-alpine
+        container_name: laravel_redis
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+        networks:
+            - logistics_network
+        healthcheck:
+            test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
 volumes:
     postgres_data:
+    redis_data:
+        driver: local
 
 networks:
     logistics_network:
