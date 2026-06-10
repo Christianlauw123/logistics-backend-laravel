@@ -32,6 +32,8 @@ class TransactionDetailService
             ]);
         }
 
+        $this->preventClaimTabunganModified('create', $data['purpose']);
+
         $transactionDetailData = collect($data)
             ->merge(['user_id' => $userId])
             ->toArray();
@@ -108,6 +110,8 @@ class TransactionDetailService
     public function delete(string $id): void
     {
         $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
+        $this->preventClaimTabunganModified('delete', $transactionDetail->purpose);
+
         if ($transactionDetail->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
                 'status' => 'Hanya SUBMITTED detail yang dapat dihapus',
@@ -117,5 +121,27 @@ class TransactionDetailService
             $this->googleDriveService->delete($transactionDetail->attachment->file_id);
 
         $this->transactionDetailRepository->delete($transactionDetail);
+    }
+
+    // Custom Function
+    // Prevent claim & tabungan deleted or modified
+    private function preventClaimTabunganModified(string $state, string $purpose): void{
+        $purposeCheckFound = match(str($purpose)->trim()->lower()){
+            'claim' => 'claim',
+            'tabungan' => 'tabungan',
+            'klaim' => 'klaim',
+            default => ''
+        };
+        if (empty($purposeCheckFound)){
+            $message = match($state){
+                'create' => 'ditambah',
+                'update' => 'dirubah',
+                'delete' => 'dihapus',
+                'default' => ''
+            };
+            throw ValidationException::withMessages([
+                'status' => 'Claim & Tabungan tidak dapat '.$message,
+            ]);
+        }
     }
 }
