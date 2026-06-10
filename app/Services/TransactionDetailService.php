@@ -132,7 +132,7 @@ class TransactionDetailService
             'klaim' => 'klaim',
             default => ''
         };
-        if (empty($purposeCheckFound)){
+        if (!empty($purposeCheckFound)){
             $message = match($state){
                 'create' => 'ditambah',
                 'update' => 'dirubah',
