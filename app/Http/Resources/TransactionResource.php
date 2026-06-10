@@ -7,6 +7,14 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class TransactionResource extends JsonResource
 {
+    protected $calculations;
+
+    public function __construct($resource, array $calculations = [])
+    {
+        parent::__construct($resource);
+        $this->calculations = $calculations;
+    }
+
     public function toArray(Request $request): array
     {
         return [
@@ -24,6 +32,7 @@ class TransactionResource extends JsonResource
             'transaction_items'     => $this->transaction_items,
             'bank_account_num'      => $this->bank_account_num,
             'customer_name'         => $this->customer_name,
+            'driver_name'           => $this->driver_name,
             'trip_price_amount'     => $this->trip_price_amount,
             'note'                  => $this->note,
             'origin_district'       => $this->origin_district,
@@ -33,6 +42,8 @@ class TransactionResource extends JsonResource
             'bank_account_id'       => $this->bank_account_id,
             'origin_sub_district_id'=> $this->origin_sub_district_id,
             'dest_sub_district_id'  => $this->dest_sub_district_id,
+            'driver_id'             => $this->driver_id,
+            'current_total'         => $this->calculations['current_total'] ?? 0, // Custom Fields
             // Conditional: only load if relation is already loaded
             // Prevents N+1 — never loads relation just for the resource
             'user' => $this->whenLoaded('user', fn () => [

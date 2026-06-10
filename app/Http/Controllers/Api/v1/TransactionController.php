@@ -70,7 +70,8 @@ class TransactionController extends Controller
     public function show(string $transactionId): TransactionResource
     {
         return new TransactionResource(
-            $this->transactionService->findOrFail($transactionId)
+            $this->transactionService->findOrFail($transactionId),
+            $this->transactionService->getCurrentTransactionLimit($transactionId)
         );
     }
 

@@ -24,6 +24,14 @@ class TransactionDetailService
 
     public function create(array $data, string $userId): TransactionDetail
     {
+        $transaction = $this->transactionRepository->findByIdOrFail($data['transaction_id']);
+
+        if(in_array($transaction->status, ['DONE', 'CANCELLED', 'REJECTED'], true)){
+            throw ValidationException::withMessages([
+                'amount' => 'Status bukan SUBMITTED / APPROVED',
+            ]);
+        }
+
         $transactionDetailData = collect($data)
             ->merge(['user_id' => $userId])
             ->toArray();
@@ -47,7 +55,13 @@ class TransactionDetailService
         // Business rule: only SUBMITTED transactions can be edited
         if ($transactionDetail->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
-                'status' => 'Only SUBMITTED transactions can be edited.',
+                'status' => 'Hanya SUBMITTED detail yang dapat dirubah',
+            ]);
+        }
+
+        if(in_array($transactionDetail->transaction->status, ['DONE', 'CANCELLED', 'REJECTED'], true)){
+            throw ValidationException::withMessages([
+                'amount' => 'Status Transaksi bukan SUBMITTED / APPROVED',
             ]);
         }
 
@@ -76,15 +90,15 @@ class TransactionDetailService
 
         $current = $transactionDetail->status;
 
-        if (in_array($transactionDetail->transaction->status, ['CANCELLED', 'REJECTED'], true)) {
+        if (in_array($transactionDetail->transaction->status, ['DONE', 'CANCELLED', 'REJECTED'], true)) {
             throw ValidationException::withMessages([
-                'status' => "Cannot Update. Transaction is in {$transactionDetail->transaction->status} status.",
+                'status' => "Gagal Update. Status Transaksi telah: {$transactionDetail->transaction->status}.",
             ]);
         }
 
         if (! in_array($status, $allowedTransitions[$current], true)) {
             throw ValidationException::withMessages([
-                'status' => "Cannot transition from {$current} to {$status}.",
+                'status' => "Gagal Update dari {$current} ke {$status}.",
             ]);
         }
 
@@ -96,7 +110,7 @@ class TransactionDetailService
         $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
         if ($transactionDetail->status !== 'SUBMITTED') {
             throw ValidationException::withMessages([
-                'status' => 'Only SUBMITTED transactions can be deleted.',
+                'status' => 'Hanya SUBMITTED detail yang dapat dihapus',
             ]);
         }
         if($transactionDetail->attachment->file_id)

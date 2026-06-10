@@ -145,6 +145,7 @@ class TransactionRepository
         $transaction->destination_district = $transaction->getDistrictLabelAttribute($transaction->destinationSubDistrict);
         $transaction->bank_account_num = $transaction->bankAccount->account_identifier_number;
         $transaction->customer_name = $transaction->customer->name;
+        $transaction->driver_name = $transaction->driver->name;
         $transaction->save();
     }
 
@@ -166,7 +167,11 @@ class TransactionRepository
             if ($total + $amount > $transaction->trip_price_amount || $total + $amount < 0)
                 $state = false;
         }
-        return ['state' => $state, 'trip_price_amount' => $transaction->trip_price_amount, 'current_total' => $total];
+        return [
+            'state' => $state,
+            'trip_price_amount' => $transaction->trip_price_amount,
+            'current_total' => $total,
+        ];
     }
 
     public function setGoogleDriveFolder(string $transactionId, string $transactionFolderId, string $transactionDetailFolderId): void {

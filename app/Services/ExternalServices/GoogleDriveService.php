@@ -125,16 +125,7 @@ class GoogleDriveService
      */
     private function ensureFolder(string $folderName, string $parentId): string
     {
-        // Search for existing folder first — avoid duplicates
-        $results = $this->drive->files->listFiles([
-            'q'      => "name='{$folderName}'"
-                      . " and '{$parentId}' in parents"
-                      . " and mimeType='application/vnd.google-apps.folder'"
-                      . " and trashed=false",
-            'fields' => 'files(id)',
-        ]);
-
-        $files = $results->getFiles();
+        $files = $this->getFiles($folderName, $parentId);
 
         if (! empty($files)) {
             return $files[0]->getId();
@@ -149,6 +140,19 @@ class GoogleDriveService
         $folder = $this->drive->files->create($metadata, ['fields' => 'id']);
 
         return $folder->getId();
+    }
+
+    public function getFiles(string $folderName, string $parentId, ?string $searchBy = 'name'){
+        // searchBy -> defaults : name. option: name | id
+        $q = "'{$parentId}' in parents". " and mimeType='application/vnd.google-apps.folder'". " and trashed=false";
+        if ($searchBy === 'name')
+            $q = "name='{$folderName}' and ".$q;
+
+        $results = $this->drive->files->listFiles([
+            'q'      => $q,
+            'fields' => 'files(id)',
+        ]);
+        return $results->getFiles();
     }
 
     /**

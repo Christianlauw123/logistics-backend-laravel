@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['trip_price_id', 'note', 'file_folder_id', 'file_sub_folder_id', 'file_provider', 'status', 'customer_id', 'vehicle_id', 'bank_account_id', 'origin_sub_district_id', 'dest_sub_district_id', 'user_id', 'trip_price_amount', 'origin_district', 'destination_district', 'dest_address', 'customer_name', 'vehicle_plate', 'bank_account_num', 'do_number', 'do_date', 'do_actual_date', 'vehicle_type', 'vehicle_capacity', 'transaction_capacity', 'transaction_items', 'deleted_at'])]
+#[Fillable(['trip_price_id', 'note', 'file_folder_id', 'driver_name', 'driver_id', 'file_sub_folder_id', 'file_provider', 'status', 'customer_id', 'vehicle_id', 'bank_account_id', 'origin_sub_district_id', 'dest_sub_district_id', 'user_id', 'trip_price_amount', 'origin_district', 'destination_district', 'dest_address', 'customer_name', 'vehicle_plate', 'bank_account_num', 'do_number', 'do_date', 'do_actual_date', 'vehicle_type', 'vehicle_capacity', 'transaction_capacity', 'transaction_items', 'deleted_at'])]
 class Transaction extends Model
 {
     use HasUuids, SoftDeletes;
@@ -20,6 +20,10 @@ class Transaction extends Model
     protected $casts = [
         'deleted_at'  => 'datetime',
     ];
+
+    public function driver(): BelongsTo{
+        return $this->belongsTo(Driver::class);
+    }
 
     public function customer(): BelongsTo{
         return $this->belongsTo(Customer::class);

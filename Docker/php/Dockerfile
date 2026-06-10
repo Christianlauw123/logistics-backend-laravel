@@ -2,13 +2,15 @@ FROM php:8.5-fpm-alpine
 
 RUN apk add --no-cache \
     postgresql-dev \
+    postgresql17-client \
     libzip-dev \
     zip \
     unzip \
     git \
     curl \
     oniguruma-dev \
-    build-base
+    build-base \
+    gzip
 
 RUN docker-php-ext-install \
     pdo \
@@ -28,7 +30,9 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=ext-gd
 
 RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache \
+    && mkdir -p storage/app/backups \
+    && chmod -R 755 storage/app/backups
 
 EXPOSE 9000
 

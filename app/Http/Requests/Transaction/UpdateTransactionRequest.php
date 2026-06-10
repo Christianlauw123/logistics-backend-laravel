@@ -20,12 +20,13 @@ class UpdateTransactionRequest extends FormRequest
             'vehicle_id'            => ['sometimes', 'uuid', 'exists:vehicles,id'],
             'bank_account_id'       => ['sometimes', 'uuid', 'exists:bank_accounts,id'],
             'dest_address'          => ['sometimes', 'string', 'max:255'],
-            'do_number'             => ['sometimes', 'string', "unique:transactions,do_number,{$transactionId}"],
-            'do_actual_date'        => ['sometimes', 'date'],
+            'do_number'             => ['nullable', 'string', "unique:transactions,do_number,{$transactionId}"],
+            'do_actual_date'        => ['nullable', 'date'],
             'transaction_capacity'  => ['sometimes', 'numeric', 'min:0'],
             'transaction_items'     => ['sometimes', 'string', 'max:255'],
             'origin_sub_district_id'=> ['sometimes', 'uuid', 'exists:sub_districts,id'],
             'dest_sub_district_id'  => ['sometimes', 'uuid', 'exists:sub_districts,id'],
+            'driver_id'             => ['sometimes', 'uuid', 'exists:drivers,id'],
             'note'                  => ['sometimes', 'string'],
         ];
     }
@@ -47,6 +48,8 @@ class UpdateTransactionRequest extends FormRequest
             'origin_sub_district_id.exists' => 'Kecamatan asal tidak ditemukan',
             'dest_sub_district_id.uuid' => 'Kecamatan tujuan tidak valid',
             'dest_sub_district_id.exists' => 'Kecamatan tujuan tidak ditemukan',
+            'driver_id.uuid' => 'Driver tidak valid',
+            'driver_id.exists' => 'Driver tidak ditemukan',
         ];
     }
 }
