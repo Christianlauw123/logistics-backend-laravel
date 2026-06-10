@@ -11,7 +11,7 @@ class TransactionDetailResource extends JsonResource
     {
         return [
             'id'            => $this->id,
-            'amount'        => $this->name,
+            'amount'        => $this->amount,
             'note'          => $this->note,
             'purpose'       => $this->purpose,
             'status'        => $this->status,

@@ -68,31 +68,30 @@ class BackupDatabaseCommand extends Command
         $username = config('database.connections.pgsql.username');
         $password = config('database.connections.pgsql.password');
 
-        // Set password for pg_dump
-        putenv("PGPASSWORD={$password}");
-
         // Create SQL backup
         $sqlFile = str_replace('.gz', '', $filepath);
+
         $command = sprintf(
-            'pg_dump -h %s -U %s -p %s %s > %s',
+            'PGPASSWORD=%s pg_dump -h %s -p %s -U %s -F c -b %s > %s 2>&1',
+            escapeshellarg($password),
             escapeshellarg($host),
-            escapeshellarg($username),
             escapeshellarg($port),
+            escapeshellarg($username),
             escapeshellarg($database),
-            escapeshellarg($sqlFile)
+            escapeshellarg($sqlFile),
         );
 
         exec($command, $output, $returnCode);
 
         if ($returnCode !== 0) {
-            throw new \Exception('Database dump failed');
+            throw new \Exception('Database dump failed' . (implode("\n", $output) ?: 'Unknown error'));
         }
 
         // Compress with gzip
         exec('gzip -f ' . escapeshellarg($sqlFile), $output, $returnCode);
 
         if (!file_exists($filepath)) {
-            throw new \Exception('Backup compression failed');
+            throw new \Exception('Backup compression failed' . (implode("\n", $output) ?: 'Unknown error'));
         }
     }
 

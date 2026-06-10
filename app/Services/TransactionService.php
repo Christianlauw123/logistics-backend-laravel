@@ -39,6 +39,7 @@ class TransactionService
 
         // Dynamically attach it to the model instance
         $transaction->setAttribute('current_total', $additionalData['current_total']);
+        $transaction->setAttribute('current_total_approved', $additionalData['current_total_approved']);
         return $transaction->refresh();
     }
 

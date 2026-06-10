@@ -11,7 +11,7 @@ services:
         volumes:
             - .:/var/www/html
             - ./storage:/var/www/html/storage
-            - /var/www/html/vendor
+            - ./vendor:/var/www/html/vendor
         env_file:
             - .env
         depends_on:
@@ -29,12 +29,15 @@ services:
         volumes:
             - .:/var/www/html
             - ./storage:/var/www/html/storage
-            - /var/www/html/vendor
+            - ./vendor:/var/www/html/vendor
+            - /var/run/docker.sock:/var/run/docker.sock
         env_file:
             - .env
         depends_on:
-            - redis
-            - postgres
+            redis:
+                condition: service_healthy
+            postgres:
+                condition: service_healthy
         networks:
             - logistics_network
         command: php artisan schedule:work
