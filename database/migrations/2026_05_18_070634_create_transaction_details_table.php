@@ -16,7 +16,7 @@ return new class extends Migration
             $table->decimal('amount')->nullable();
             $table->text('note')->nullable();
             $table->text('purpose')->nullable();
-            // 'SUBMITTED', 'APPROVED', 'DONE', 'CANCELLED', 'REJECTED'
+            // 'SUBMITTED', 'APPROVED', 'DONE', 'CANCELLED', 'REJECTED', 'CANCELLED_FOR_REVISION'
             $table->text('status')->nullable();
             $table->timestampsTz();
             $table->timestampTz('deleted_at')->nullable();
