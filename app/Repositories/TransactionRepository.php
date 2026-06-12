@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use App\Enums\TransactionDetails\TransactionDetailStatus;
+use App\Enums\Transactions\TransactionStatus;
 use App\Models\Transaction;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -151,8 +153,7 @@ class TransactionRepository
 
     public function prePopulateCreateTransaction(string $transactionId): void {
         $transaction = $this->findByIdOrFail($transactionId)->refresh();
-        // 'SUBMITTED', 'APPROVED', 'DONE', 'CANCELLED', 'REJECTED'
-        $transaction->status = 'SUBMITTED';
+        $transaction->status = TransactionStatus::SUBMITTED;
         $transaction->do_date = $transaction->created_at->timezone('Asia/Jakarta');
         $transaction->save();
     }
@@ -160,7 +161,7 @@ class TransactionRepository
     public function preCalculateCurrentTransactionTotal(string $transactionId, ?float $amount = null): array {
         $transaction = $this->findByIdOrFail($transactionId)->refresh();
         $transactionDetails = $transaction->transactionDetails;
-        $total = $transactionDetails ? $transactionDetails->whereIn('status', ['SUBMITTED', 'APPROVED', 'DONE'])->sum('amount') : 0;
+        $total = $transactionDetails ? $transactionDetails->whereIn('status', TransactionDetailStatus::requestedDefaults())->sum('amount') : 0;
 
         $state = true;
         if ($amount !== null) {
@@ -170,7 +171,7 @@ class TransactionRepository
         return [
             'state' => $state,
             'trip_price_amount' => $transaction->trip_price_amount,
-            'current_total_approved' => $transactionDetails->whereIn('status', ['APPROVED', 'DONE'])->sum('amount'),
+            'current_total_approved' => $transactionDetails->whereIn('status', TransactionDetailStatus::approvedDefaults())->sum('amount'),
             'current_total' => $total
         ];
     }

@@ -18,6 +18,7 @@ class AttachmentResource extends JsonResource
             'upload_status'         => $this->upload_status,
             'upload_status_error'   => $this->upload_status_error,
             'status'                => $this->status,
+            'original_file_name'    => $this->original_file_name ?? $this->id,
             'uploaded_at'           => $this->uploaded_at,
             'created_at'            => $this->created_at,
             'updated_at'            => $this->updated_at,

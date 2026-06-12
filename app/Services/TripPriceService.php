@@ -6,7 +6,9 @@ use App\Models\TripPrice;
 use App\Repositories\TripPriceRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class TripPriceService
 {
@@ -31,38 +33,61 @@ class TripPriceService
 
     public function create(array $data): TripPrice
     {
-        // Business rule: no duplicate origin-destination for same customer
-        $filters = [
-            'customer_id' => $data['customer_id'],
-            'origin_sub_district_id' => $data['origin_sub_district_id'],
-            'dest_sub_district_id' => $data['dest_sub_district_id']
-        ];
-        $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
+        DB::beginTransaction();
+        try{
+            // Business rule: no duplicate origin-destination for same customer
+            $filters = [
+                'customer_id' => $data['customer_id'],
+                'origin_sub_district_id' => $data['origin_sub_district_id'],
+                'dest_sub_district_id' => $data['dest_sub_district_id']
+            ];
+            $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
 
-        if (count($tripPriceCheck->items()) > 0) {
-            throw ValidationException::withMessages([
-                'trip_price' => 'A price for this customer and route already exists.',
-            ]);
+            if (count($tripPriceCheck->items()) > 0) {
+                throw ValidationException::withMessages([
+                    'trip_price' => 'A price for this customer and route already exists.',
+                ]);
+            }
+            $tripPrice = $this->tripPriceRepository->create($data);
+            DB::commit();
+            return $tripPrice->refresh();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
         }
 
-        return $this->tripPriceRepository->create($data);
     }
 
     public function update(string $id, array $data): TripPrice
     {
-        $tripPrice = $this->tripPriceRepository->findOrFail($id);
-        // if ($tripPrice->transactions()->exists()) {
-        //     throw ValidationException::withMessages([
-        //         'trip_price' => 'Cannot update a trip price that has transactions.',
-        //     ]);
-        // }
-        return $this->tripPriceRepository->update($tripPrice, $data);
+        DB::beginTransaction();
+        try{
+            $tripPrice = $this->tripPriceRepository->findOrFail($id);
+            // if ($tripPrice->transactions()->exists()) {
+            //     throw ValidationException::withMessages([
+            //         'trip_price' => 'Cannot update a trip price that has transactions.',
+            //     ]);
+            // }
+            $this->tripPriceRepository->update($tripPrice, $data);
+            DB::commit();
+            return $tripPrice->refresh();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     public function delete(string $id): void
     {
-        $tripPrice = $this->tripPriceRepository->findOrFail($id);
-        $this->tripPriceRepository->delete($tripPrice);
+        DB::beginTransaction();
+        try{
+            $tripPrice = $this->tripPriceRepository->findOrFail($id);
+            $this->tripPriceRepository->delete($tripPrice);
+            DB::commit();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**

@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
-#[Fillable(['base_price', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id', 'deleted_at'])]
-class TripPrice extends Model
+#[Fillable(['base_price', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id', 'deleted_at', 'last_updated_by_id', 'user_id'])]
+class TripPrice extends BaseModel
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids, SoftDeletes, LogsActivity;
     protected $keyType = 'string';
     public $incrementing = false;
 

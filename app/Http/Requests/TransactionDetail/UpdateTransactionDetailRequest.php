@@ -17,6 +17,8 @@ class UpdateTransactionDetailRequest extends FormRequest
             'amount'            => ['required', 'numeric', 'min:0.1'],
             'note'              => ['nullable', 'string'],
             'purpose'           => ['nullable', 'string'],
+            'file'              => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048', 'required_if:is_special_case,true,true'],
+            'is_special_case'   => ['nullable', 'boolean'],
         ];
     }
 
@@ -25,6 +27,10 @@ class UpdateTransactionDetailRequest extends FormRequest
         return [
             'amount.numeric' => 'Jumlah harus berupa angka',
             'amount.min' => 'Jumlah harus bernilai positif',
+            'file.file' => 'File harus berupa file yang valid',
+            'file.mimes' => 'File harus berupa gambar (jpg, jpeg, png)',
+            'file.max' => 'Ukuran file maksimal < 2MB',
+            'file.required_if' => 'File bukti diperlukan'
         ];
     }
 }

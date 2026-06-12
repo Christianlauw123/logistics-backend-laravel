@@ -25,6 +25,7 @@ class VehicleService
 
     public function create(array $data): Vehicle
     {
+
         return $this->vehicleRepository->create($data);
     }
 

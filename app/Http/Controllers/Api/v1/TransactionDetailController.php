@@ -26,8 +26,7 @@ class TransactionDetailController extends Controller
     {
         return new TransactionDetailResource(
             $this->transactionDetailService->create(
-                $request->validated(),
-                $request->user()?->id,
+                $request->validated()
             )
         );
     }

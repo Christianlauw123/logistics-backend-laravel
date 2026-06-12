@@ -72,7 +72,7 @@ class BackupDatabaseCommand extends Command
         $sqlFile = str_replace('.gz', '', $filepath);
 
         $command = sprintf(
-            'PGPASSWORD=%s pg_dump -h %s -p %s -U %s -F c -b %s > %s 2>&1',
+            'pg_dump -h %s -p %s -U %s -F c -b %s > %s 2>&1',
             escapeshellarg($password),
             escapeshellarg($host),
             escapeshellarg($port),

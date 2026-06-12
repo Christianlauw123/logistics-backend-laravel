@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\TransactionDetail;
 
+use App\Enums\TransactionDetails\TransactionDetailStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,7 +16,7 @@ class UpdateTransactionDetailStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', Rule::in(['SUBMITTED', 'APPROVED', 'DONE', 'CANCELLED', 'REJECTED'])],
+            'status' => ['required', Rule::in(array_column(TransactionDetailStatus::cases(),'value'))],
         ];
     }
 

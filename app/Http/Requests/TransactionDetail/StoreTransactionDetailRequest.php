@@ -18,6 +18,8 @@ class StoreTransactionDetailRequest extends FormRequest
             'note'              => ['nullable', 'string'],
             'purpose'           => ['nullable', 'string'],
             'transaction_id'    => ['required', 'uuid', 'exists:transactions,id'],
+            'is_special_case'   => ['nullable', 'boolean'],
+            'file'              => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048', 'required_if:is_special_case,true,true'],
         ];
     }
 
@@ -27,6 +29,10 @@ class StoreTransactionDetailRequest extends FormRequest
             'amount.required' => 'Jumlah harus diisi',
             'amount.numeric' => 'Jumlah harus berupa angka',
             'amount.min' => 'Jumlah harus bernilai positif',
+            'file.file' => 'File harus berupa file yang valid',
+            'file.mimes' => 'File harus berupa gambar (jpg, jpeg, png)',
+            'file.max' => 'Ukuran file maksimal < 2MB',
+            'file.required_if' => 'File bukti diperlukan'
         ];
     }
 }

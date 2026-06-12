@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
-#[Fillable(['name', 'deleted_at','district_id'])]
-class SubDistrict extends Model
+#[Fillable(['name', 'deleted_at','district_id', 'last_updated_by_id', 'user_id'])]
+class SubDistrict extends BaseModel
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids, SoftDeletes, LogsActivity;
     protected $keyType = 'string';
     public $incrementing = false;
 
