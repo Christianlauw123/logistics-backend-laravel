@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\TransactionDetails\TransactionDetailDefaultItem;
+use App\Enums\TransactionDetails\TransactionDetailStatus;
+use App\Enums\Transactions\TransactionStatus;
 use App\Jobs\ExportTransactionsJob;
 use App\Models\Transaction;
 use App\Repositories\TransactionDetailRepository;
@@ -65,20 +68,10 @@ class TransactionService
 
         $transaction = $this->transactionRepository->create($transactionData);
 
-        // Add Driver Commission
-        $this->transactionDetailRepository->create([
-            'purpose' => 'TABUNGAN',
-            'amount' => 0,
-            'transaction_id' => $transaction->id,
-            'status' => 'SUBMITTED'
-        ]);
-        // Add Driver Claim
-        $this->transactionDetailRepository->create([
-            'purpose' => 'CLAIM',
-            'amount' => 0,
-            'transaction_id' => $transaction->id,
-            'status' => 'SUBMITTED'
-        ]);
+        // Add Driver Commission + Claim
+        foreach (array_column(TransactionDetailDefaultItem::cases(), 'value') as $value) {
+            $this->transactionDetailRepository->create(['purpose' => $value, 'amount' => 0, 'transaction_id' => $transaction->id, 'status' => TransactionDetailStatus::SUBMITTED]);
+        }
 
         // Create Drive Folder
         $subFolder = 'PENDING_DO_NUMBER';
@@ -141,21 +134,13 @@ class TransactionService
     {
         $transaction = $this->transactionRepository->findByIdOrFail($id);
 
-        // Business rule: status must follow order
-        $allowedTransitions = [
-            'SUBMITTED' => ['APPROVED', 'DONE', 'CANCELLED', 'REJECTED'],
-            'APPROVED'  => ['DONE', 'CANCELLED', 'REJECTED'],
-            'DONE'      => [],
-            'CANCELLED' => [],
-            'REJECTED'  => [],
-        ];
+        $newStatus = TransactionStatus::tryFrom($status);
+        if (!$newStatus) {
+            throw ValidationException::withMessages(['status' => "Status tidak valid.",]);
+        }
 
-        $current = $transaction->status;
-
-        if (! in_array($status, $allowedTransitions[$current], true)) {
-            throw ValidationException::withMessages([
-                'status' => "Cannot transition from {$current} to {$status}.",
-            ]);
+        if (! $transaction->status->canTransitionTo($newStatus)) {
+            throw ValidationException::withMessages(['status' => "Gagal Update dari {$transaction->status->value} ke {$newStatus->value}.",]);
         }
 
         return $this->transactionRepository->updateStatus($transaction, $status);

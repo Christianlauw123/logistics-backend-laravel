@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionDetails\TransactionDetailStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -18,8 +19,8 @@ class TransactionDetail extends Model
 
     protected $casts = [
         'deleted_at'  => 'datetime',
+        'status' => TransactionDetailStatus::class,
     ];
-
     public function transaction(): BelongsTo{
         return $this->belongsTo(Transaction::class);
     }

@@ -2,9 +2,8 @@
 
 namespace App\Repositories;
 
+use App\Enums\TransactionDetails\TransactionDetailStatus;
 use App\Models\TransactionDetail;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 
 class TransactionDetailRepository
 {
@@ -49,7 +48,7 @@ class TransactionDetailRepository
 
     public function prePopulateCreateTransactionDetail(string $transactionDetailId): void {
         $transactionDetail = $this->findByIdOrFail($transactionDetailId)->refresh();
-        $transactionDetail->status = 'SUBMITTED';
+        $transactionDetail->status = TransactionDetailStatus::SUBMITTED;
         $transactionDetail->save();
     }
 }

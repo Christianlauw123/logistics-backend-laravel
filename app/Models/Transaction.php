@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Transactions\TransactionStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -19,6 +20,7 @@ class Transaction extends Model
 
     protected $casts = [
         'deleted_at'  => 'datetime',
+        'status' => TransactionStatus::class,
     ];
 
     public function driver(): BelongsTo{

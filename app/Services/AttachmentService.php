@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\Attachments\AttachmentStatus;
+use App\Enums\Attachments\AttachmentUploadStatus;
 use App\Services\ExternalServices\GoogleDriveService;
 use App\Models\Attachment;
 use App\Repositories\AttachmentRepository;
@@ -54,19 +56,11 @@ class AttachmentService
                 'file_url' => $driveData['file_url'],
                 'file_provider' => 'google-drive',
                 'file_id' => $driveData['drive_file_id'],
-                'upload_status' => 'COMPLETED',
+                'upload_status' => AttachmentUploadStatus::COMPLETED,
                 'uploaded_at' => now()
             ])
             ->toArray();
-        // $transactionData = collect($data)
-        //     ->merge([
-        //         'transaction_detail_id' => $data['transaction_detail_id'] ?? null,
-        //         'transaction_id' => $data['transaction_id'] ?? null,
-        //         'user_id' => $userId,
-        //         'upload_status' => 'COMPLETED',
-        //         'uploaded_at' => now()
-        //     ])
-        //     ->toArray();
+
         $attachment = $this->attachmentRepository->create($transactionData);
 
         return $attachment->refresh();
@@ -77,7 +71,7 @@ class AttachmentService
         $attachment = $this->attachmentRepository->findByIdOrFail($id);
 
         // Business rule: only PENDING Attachments can be edited
-        if ($attachment->status !== 'PENDING') {
+        if ($attachment->status !== AttachmentStatus::PENDING) {
             throw ValidationException::withMessages([
                 'status' => 'Only PENDING Attachments can be edited.',
             ]);

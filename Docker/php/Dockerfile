@@ -10,7 +10,8 @@ RUN apk add --no-cache \
     curl \
     oniguruma-dev \
     build-base \
-    gzip
+    gzip \
+    docker-cli
 
 RUN docker-php-ext-install \
     pdo \

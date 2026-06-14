@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\TransactionDetails\TransactionDetailStatus;
+use App\Enums\Transactions\TransactionStatus;
 use App\Models\TransactionDetail;
 use App\Repositories\TransactionDetailRepository;
 use App\Repositories\TransactionRepository;
 use App\Services\ExternalServices\GoogleDriveService;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
 class TransactionDetailService
@@ -26,7 +27,8 @@ class TransactionDetailService
     {
         $transaction = $this->transactionRepository->findByIdOrFail($data['transaction_id']);
 
-        if(in_array($transaction->status, ['DONE', 'CANCELLED', 'REJECTED'], true)){
+        // Prevent Update Detail if Parent not in
+        if(!in_array($transaction->status, TransactionStatus::allowUpdates(), true)){
             throw ValidationException::withMessages([
                 'amount' => 'Status bukan SUBMITTED / APPROVED',
             ]);
@@ -55,13 +57,13 @@ class TransactionDetailService
         $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
 
         // Business rule: only SUBMITTED transactions can be edited
-        if ($transactionDetail->status !== 'SUBMITTED') {
+        if ($transactionDetail->status !== TransactionDetailStatus::SUBMITTED) {
             throw ValidationException::withMessages([
                 'status' => 'Hanya SUBMITTED detail yang dapat dirubah',
             ]);
         }
 
-        if(in_array($transactionDetail->transaction->status, ['DONE', 'CANCELLED', 'REJECTED'], true)){
+        if(!in_array($transactionDetail->transaction->status, TransactionStatus::allowUpdates(), true)){
             throw ValidationException::withMessages([
                 'amount' => 'Status Transaksi bukan SUBMITTED / APPROVED',
             ]);
@@ -81,26 +83,22 @@ class TransactionDetailService
     {
         $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
 
-        // Business rule: status must follow order
-        $allowedTransitions = [
-            'SUBMITTED' => ['APPROVED', 'DONE', 'CANCELLED', 'REJECTED'],
-            'APPROVED'  => ['DONE', 'CANCELLED', 'REJECTED'],
-            'DONE'      => [],
-            'CANCELLED' => [],
-            'REJECTED'  => [],
-        ];
-
-        $current = $transactionDetail->status;
-
-        if (in_array($transactionDetail->transaction->status, ['DONE', 'CANCELLED', 'REJECTED'], true)) {
+        $newStatus = TransactionDetailStatus::tryFrom($status);
+        if (!$newStatus) {
             throw ValidationException::withMessages([
-                'status' => "Gagal Update. Status Transaksi telah: {$transactionDetail->transaction->status}.",
+                'status' => "Status tidak valid.",
             ]);
         }
 
-        if (! in_array($status, $allowedTransitions[$current], true)) {
+        if(!in_array($transactionDetail->transaction->status, TransactionStatus::allowUpdates(), true)){
             throw ValidationException::withMessages([
-                'status' => "Gagal Update dari {$current} ke {$status}.",
+                'amount' => 'Status Transaksi bukan SUBMITTED / APPROVED',
+            ]);
+        }
+
+        if (! $transactionDetail->status->canTransitionTo($newStatus)) {
+            throw ValidationException::withMessages([
+                'status' => "Gagal Update dari {$transactionDetail->status->value} ke {$newStatus->value}.",
             ]);
         }
 
@@ -112,7 +110,7 @@ class TransactionDetailService
         $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
         $this->preventClaimTabunganModified('delete', $transactionDetail->purpose);
 
-        if ($transactionDetail->status !== 'SUBMITTED') {
+        if ($transactionDetail->status !== TransactionDetailStatus::SUBMITTED) {
             throw ValidationException::withMessages([
                 'status' => 'Hanya SUBMITTED detail yang dapat dihapus',
             ]);
@@ -132,7 +130,7 @@ class TransactionDetailService
             'klaim' => 'klaim',
             default => ''
         };
-        if (empty($purposeCheckFound)){
+        if (!empty($purposeCheckFound)){
             $message = match($state){
                 'create' => 'ditambah',
                 'update' => 'dirubah',
