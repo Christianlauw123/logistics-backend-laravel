@@ -44,11 +44,13 @@ class TransactionDetailService
             $transactionDetailData = collect($data)->except('file')->toArray();
 
             // Check all submitted if added with this one is exceed or not
-            $detailCreationAllowed = $this->transactionRepository->preCalculateCurrentTransactionTotal($transactionDetailData['transaction_id'], $transactionDetailData['amount']);
-            if(!$detailCreationAllowed['state']){
-                throw ValidationException::withMessages([
-                    'amount' => 'Jumlah Amount Baru melebihi biaya trip maksimal '.$detailCreationAllowed['trip_price_amount'],
-                ]);
+            if ($transactionDetailData['is_special_case'] == false){
+                $detailCreationAllowed = $this->transactionRepository->preCalculateCurrentTransactionTotal($transactionDetailData['transaction_id'], $transactionDetailData['amount']);
+                if(!$detailCreationAllowed['state']){
+                    throw ValidationException::withMessages([
+                        'amount' => 'Jumlah Amount Baru melebihi biaya trip maksimal '.$detailCreationAllowed['trip_price_amount'],
+                    ]);
+                }
             }
 
             $transactionDetail = $this->transactionDetailRepository->create($transactionDetailData);
@@ -107,6 +109,7 @@ class TransactionDetailService
                 ]);
             }
 
+
             $detailCreationAllowed = $this->transactionRepository->preCalculateCurrentTransactionTotal($transactionDetail->transaction->id, -$transactionDetail->amount + $data['amount']);
             if(!$detailCreationAllowed['state']){
                 throw ValidationException::withMessages([
@@ -138,6 +141,7 @@ class TransactionDetailService
             $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
 
             $newStatus = TransactionDetailStatus::tryFrom($status);
+            var_dump($newStatus);
             if (!$newStatus) {
                 throw ValidationException::withMessages([
                     'status' => "Status tidak valid.",
@@ -150,10 +154,12 @@ class TransactionDetailService
                 ]);
             }
 
-            if (! $transactionDetail->status->canTransitionTo($newStatus)) {
-                throw ValidationException::withMessages([
-                    'status' => "Gagal Update dari {$transactionDetail->status} ke {$newStatus}.",
-                ]);
+            if (request()->user()->role !== 'Super Admin'){
+                if (! $transactionDetail->status->canTransitionTo($newStatus)) {
+                    throw ValidationException::withMessages([
+                        'status' => "Gagal Update dari {$transactionDetail->status} ke {$newStatus}.",
+                    ]);
+                }
             }
 
             $transactionDetail = $this->transactionDetailRepository->updateStatus($transactionDetail, $status);

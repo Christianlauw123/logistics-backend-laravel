@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Attachments\AttachmentStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
@@ -11,6 +12,7 @@ class Attachment extends BaseModel
     protected $casts = [
         'uploaded_at' => 'datetime',
         'deleted_at'  => 'datetime',
+        'status' => AttachmentStatus::class,
     ];
 
     public function transaction(): BelongsTo {

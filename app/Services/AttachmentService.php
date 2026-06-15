@@ -97,24 +97,28 @@ class AttachmentService
 
     public function changeStatus(string $id, string $status): Attachment
     {
-        $attachment = $this->attachmentRepository->findByIdOrFail($id);
+        DB::beginTransaction();
+        try{
+            $attachment = $this->attachmentRepository->findByIdOrFail($id);
 
-        // Business rule: status must follow order
-        $allowedTransitions = [
-            'PENDING'   => ['VERIFIED', 'REJECTED'],
-            'VERIFIED' => [],
-            'REJECTED'     => [],
-        ];
+            $newStatus = AttachmentStatus::tryFrom($status);
+            if (!$newStatus) {
+                throw ValidationException::withMessages(['status' => "Status tidak valid.",]);
+            }
 
-        $current = $attachment->status;
+            if (request()->user()->role !== 'Super Admin'){
+                if (! $attachment->status->canTransitionTo($newStatus)) {
+                    throw ValidationException::withMessages(['status' => "Gagal Update dari {$attachment->status} ke {$newStatus}.",]);
+                }
+            }
 
-        if (! in_array($status, $allowedTransitions[$current], true)) {
-            throw ValidationException::withMessages([
-                'status' => "Cannot transition from {$current} to {$status}.",
-            ]);
+            $this->attachmentRepository->updateStatus($attachment, $status);
+            DB::commit();
+            return $attachment->refresh();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
         }
-
-        return $this->attachmentRepository->updateStatus($attachment, $status);
     }
 
     public function delete(string $id): void

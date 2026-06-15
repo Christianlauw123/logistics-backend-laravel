@@ -43,6 +43,8 @@ class TransactionResource extends JsonResource
             'origin_sub_district_id'    => $this->origin_sub_district_id,
             'dest_sub_district_id'      => $this->dest_sub_district_id,
             'driver_id'                 => $this->driver_id,
+            'revision_dest_sub_district_id' => $this->revision_dest_sub_district_id,
+            'revision_trip_price_amount'    => $this->revision_trip_price_amount,
             'current_total'             => $this->calculations['current_total'] ?? 0, // Custom Fields
             'current_total_approved'    => $this->calculations['current_total_approved'] ?? 0, // Custom Fields
             // Conditional: only load if relation is already loaded
@@ -58,15 +60,9 @@ class TransactionResource extends JsonResource
                     'amount'  => $d->amount,
                     'note'    => $d->note,
                     'status'  => $d->status,
+                    'is_special_case' => $d->is_special_case,
                     // Attachment Transaction Detail
-                    'attachments' => $d->relationLoaded('attachments', fn () =>
-                        $d->attachments->where('deleted_at',null)->map(fn ($a) => [
-                            'id'                   => $a->id,
-                            'file_url'             => $a->file_url,
-                            'extracted_do_number'  => $a->extracted_do_number,
-                            'is_verified'          => $a->is_verified,
-                        ])
-                    ),
+                    'attachment' => $d->attachment->file_url ?? null,
                 ])
             ),
             'attachments' => $this->whenLoaded('attachments', fn () =>
@@ -75,6 +71,7 @@ class TransactionResource extends JsonResource
                     'file_url'             => $a->file_url,
                     'extracted_do_number'  => $a->extracted_do_number,
                     'is_verified'          => $a->is_verified,
+                    'original_file_name'   => $a->original_file_name ?? $a->id
                 ])
             ),
         ];

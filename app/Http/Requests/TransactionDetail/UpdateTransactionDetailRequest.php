@@ -11,6 +11,13 @@ class UpdateTransactionDetailRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'is_special_case' => filter_var($this->is_special_case, FILTER_VALIDATE_BOOLEAN),
+        ]);
+    }
+
     public function rules(): array
     {
         return [

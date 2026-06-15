@@ -101,7 +101,7 @@ class TransactionRepository
     {
         return Transaction::with([
             'user',
-            'transactionDetails',
+            'transactionDetails.attachment',
             'attachments',
             'bankAccount',
             'customer',
@@ -155,22 +155,26 @@ class TransactionRepository
         $transaction = $this->findByIdOrFail($transactionId)->refresh();
         $transaction->status = TransactionStatus::SUBMITTED;
         $transaction->do_date = $transaction->created_at->timezone('Asia/Jakarta');
+        $transaction->revision_dest_sub_district_id  = $transaction->dest_sub_district_id;
+        $transaction->revision_trip_price_amount = $transaction->tripPrice->base_price;
+        $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->destinationSubDistrict);
         $transaction->save();
     }
 
     public function preCalculateCurrentTransactionTotal(string $transactionId, ?float $amount = null): array {
         $transaction = $this->findByIdOrFail($transactionId)->refresh();
         $transactionDetails = $transaction->transactionDetails;
-        $total = $transactionDetails ? $transactionDetails->whereIn('status', TransactionDetailStatus::requestedDefaults())->sum('amount') : 0;
+        // Only check the one that not special case for the limit
+        $total = $transactionDetails ? $transactionDetails->whereIn('status', TransactionDetailStatus::requestedDefaults())->where('is_special_case',false)->sum('amount') : 0;
 
         $state = true;
         if ($amount !== null) {
-            if ($total + $amount > $transaction->trip_price_amount || $total + $amount < 0)
+            if ($total + $amount > $transaction->revision_trip_price_amount || $total + $amount < 0)
                 $state = false;
         }
         return [
             'state' => $state,
-            'trip_price_amount' => $transaction->trip_price_amount,
+            'trip_price_amount' => $transaction->revision_trip_price_amount,
             'current_total_approved' => $transactionDetails->whereIn('status', TransactionDetailStatus::approvedDefaults())->sum('amount'),
             'current_total' => $total
         ];

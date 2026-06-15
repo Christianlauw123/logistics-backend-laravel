@@ -36,6 +36,11 @@ class SubDistrict extends BaseModel
         return $this->hasMany(Transaction::class, 'dest_sub_district_id');
     }
 
+    public function revisionDestinationTransactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'revision_dest_sub_district_id');
+    }
+
     // Named relations — same table, two different roles
     public function originTripPrices(): HasMany
     {

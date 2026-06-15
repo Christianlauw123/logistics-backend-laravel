@@ -121,7 +121,7 @@ class TransactionService
             $transaction = $this->transactionRepository->findByIdOrFail($id);
 
             // Business rule: only SUBMITTED transactions can be edited
-            if ($transaction->status !== 'SUBMITTED') {
+            if ($transaction->status !== TransactionStatus::SUBMITTED) {
                 throw ValidationException::withMessages([
                     'status' => 'Only SUBMITTED transactions can be edited.',
                 ]);
@@ -156,8 +156,10 @@ class TransactionService
                 throw ValidationException::withMessages(['status' => "Status tidak valid.",]);
             }
 
-            if (! $transaction->status->canTransitionTo($newStatus)) {
-                throw ValidationException::withMessages(['status' => "Gagal Update dari {$transaction->status} ke {$newStatus}.",]);
+            if (request()->user()->role !== 'Super Admin'){
+                if (! $transaction->status->canTransitionTo($newStatus)) {
+                    throw ValidationException::withMessages(['status' => "Gagal Update dari {$transaction->status} ke {$newStatus}.",]);
+                }
             }
             $transaction = $this->transactionRepository->updateStatus($transaction, $status);
             DB::commit();

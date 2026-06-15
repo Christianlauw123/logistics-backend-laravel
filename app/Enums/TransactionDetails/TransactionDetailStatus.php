@@ -7,7 +7,7 @@ enum TransactionDetailStatus: string {
     case APPROVED = 'APPROVED';
     case DONE = 'DONE';
     case CANCELLED = 'CANCELLED';
-    case CANCELLED_FOR_REVISION = 'CANCELLED FOR REVISION';
+    case CANCELLED_FOR_REVISION = 'CANCELLED_FOR_REVISION';
     case REJECTED = 'REJECTED';
 
     // Goal: Get Transaction Detail that requested, to get the total of request that approved and done (which is tranferred)
