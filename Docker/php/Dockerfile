@@ -2,7 +2,6 @@ FROM php:8.5-fpm-alpine
 
 RUN apk add --no-cache \
     postgresql-dev \
-    postgresql17-client \
     libzip-dev \
     zip \
     unzip \
@@ -12,6 +11,8 @@ RUN apk add --no-cache \
     build-base \
     gzip \
     docker-cli
+
+RUN apk add --no-cache postgresql-client
 
 RUN docker-php-ext-install \
     pdo \

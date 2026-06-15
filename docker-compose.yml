@@ -11,7 +11,7 @@ services:
         volumes:
             - .:/var/www/html
             - ./storage:/var/www/html/storage
-            - ./vendor:/var/www/html/vendor
+            - /var/www/html/vendor
         env_file:
             - .env
         depends_on:
@@ -19,28 +19,6 @@ services:
                 condition: service_healthy
         networks:
             - logistics_network
-    scheduler:
-        build:
-            context: .
-            dockerfile: docker/php/Dockerfile
-        container_name: laravel_scheduler
-        restart: unless-stopped
-        working_dir: /var/www/html
-        volumes:
-            - .:/var/www/html
-            - ./storage:/var/www/html/storage
-            - ./vendor:/var/www/html/vendor
-            - /var/run/docker.sock:/var/run/docker.sock
-        env_file:
-            - .env
-        depends_on:
-            redis:
-                condition: service_healthy
-            postgres:
-                condition: service_healthy
-        networks:
-            - logistics_network
-        command: php artisan schedule:work
     postgres:
         image: postgres:17-alpine
         container_name: logistics_postgres
