@@ -16,6 +16,7 @@ class TransactionDetailService
         private readonly TransactionDetailRepository $transactionDetailRepository,
         private readonly TransactionRepository $transactionRepository,
         private readonly GoogleDriveService $googleDriveService,
+        private readonly AttachmentService $attachmentService,
     ) {}
 
     public function findOrFail(string $id): TransactionDetail
@@ -23,7 +24,7 @@ class TransactionDetailService
         return $this->transactionDetailRepository->findByIdOrFail($id);
     }
 
-    public function create(array $data, string $userId): TransactionDetail
+    public function create(array $data): TransactionDetail
     {
         $transaction = $this->transactionRepository->findByIdOrFail($data['transaction_id']);
 
@@ -37,7 +38,7 @@ class TransactionDetailService
         $this->preventClaimTabunganModified('create', $data['purpose']);
 
         $transactionDetailData = collect($data)
-            ->merge(['user_id' => $userId])
+            ->except('file')
             ->toArray();
 
         // Check all submitted if added with this one is exceed or not
@@ -49,6 +50,14 @@ class TransactionDetailService
         }
         $transactionDetail = $this->transactionDetailRepository->create($transactionDetailData);
         $this->transactionDetailRepository->prePopulateCreateTransactionDetail($transactionDetail->id);
+
+        // Upload the file
+        if (!empty($data['file']))
+            $this->attachmentService->create([
+                'file' => $data['file'],
+                'transaction_detail_id' => $transactionDetail->id
+            ]);
+
         return $transactionDetail->refresh();
     }
 
@@ -76,7 +85,20 @@ class TransactionDetailService
             ]);
         }
 
-        return $this->transactionDetailRepository->update($transactionDetail, $data);
+        $transactionDetailData = collect($data)->except('file')->toArray();
+        $transactionDetail = $this->transactionDetailRepository->update($transactionDetail, $transactionDetailData);
+        // If file exists, re-upload the file, delete the old one
+        if (!empty($data['file'])){
+            if($transactionDetail->attachment->file_id)
+                $this->googleDriveService->delete($transactionDetail->attachment->file_id);
+            $this->attachmentService->create([
+                'file' => $data['file'],
+                'transaction_detail_id' => $transactionDetail->id
+            ]);
+        }
+            
+
+        return $transactionDetail->refresh();
     }
 
     public function changeStatus(string $id, string $status): TransactionDetail
@@ -98,7 +120,7 @@ class TransactionDetailService
 
         if (! $transactionDetail->status->canTransitionTo($newStatus)) {
             throw ValidationException::withMessages([
-                'status' => "Gagal Update dari {$transactionDetail->status->value} ke {$newStatus->value}.",
+                'status' => "Gagal Update dari {$transactionDetail->status} ke {$newStatus}.",
             ]);
         }
 

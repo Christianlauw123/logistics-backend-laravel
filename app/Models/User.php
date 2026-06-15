@@ -14,13 +14,14 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
-#[Fillable(['name', 'email', 'password', 'role_id', 'deleted_at'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'deleted_at', 'last_updated_by_id', 'user_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasUuids, SoftDeletes;
+    use HasFactory, Notifiable, HasApiTokens, HasUuids, SoftDeletes, LogsActivity;
 
     protected $keyType = 'string';
     public $incrementing = false;

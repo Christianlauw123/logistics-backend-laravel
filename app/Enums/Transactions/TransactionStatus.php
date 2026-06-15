@@ -15,8 +15,8 @@ enum TransactionStatus: string {
     // Goal: Updating details if Parent in this status
     public static function allowUpdates(): array{
         return [
-            self::SUBMITTED->value,
-            self::APPROVED->value
+            self::SUBMITTED,
+            self::APPROVED
         ];
     }
 

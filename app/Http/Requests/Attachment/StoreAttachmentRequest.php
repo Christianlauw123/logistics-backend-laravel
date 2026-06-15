@@ -26,7 +26,7 @@ class StoreAttachmentRequest extends FormRequest
             'file.required' => 'File harus ada',
             'file.file' => 'File harus berupa file yang valid',
             'file.mimes' => 'File harus berupa gambar (jpg, jpeg, png) atau PDF',
-            'file.max' => 'Ukuran file maksimal adalah 2MB',
+            'file.max' => 'Ukuran file maksimal < 2MB',
         ];
     }
 }

@@ -2,20 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'deleted_at'])]
-class District extends Model
+#[Fillable(['name', 'deleted_at', 'last_updated_by_id', 'user_id'])]
+class District extends BaseModel
 {
-    use HasUuids, SoftDeletes;
-    protected $keyType = 'string';
-    public $incrementing = false;
 
     protected $casts = [
         'deleted_at'  => 'datetime',

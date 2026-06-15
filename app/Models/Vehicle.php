@@ -2,19 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'plate_number', 'type', 'capacity', 'is_active', 'deleted_at'])]
-class Vehicle extends Model
+#[Fillable(['name', 'plate_number', 'type', 'capacity', 'is_active', 'deleted_at', 'last_updated_by_id', 'user_id'])]
+class Vehicle extends BaseModel
 {
-    use HasUuids, SoftDeletes;
-    protected $keyType = 'string';
-    public $incrementing = false;
-
     protected $casts = [
         'deleted_at'  => 'datetime',
     ];

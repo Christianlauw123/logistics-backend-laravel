@@ -26,7 +26,7 @@ class AttachmentService
         return $this->attachmentRepository->findByIdOrFail($id);
     }
 
-    public function create(array $data, string $userId): Attachment
+    public function create(array $data): Attachment
     {
         $folderId = '';
         $filename = '';
@@ -52,7 +52,6 @@ class AttachmentService
             ->merge([
                 'transaction_detail_id' => $data['transaction_detail_id'] ?? null,
                 'transaction_id' => $data['transaction_id'] ?? null,
-                'user_id' => $userId,
                 'file_url' => $driveData['file_url'],
                 'file_provider' => 'google-drive',
                 'file_id' => $driveData['drive_file_id'],

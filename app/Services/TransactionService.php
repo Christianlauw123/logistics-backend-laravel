@@ -46,7 +46,7 @@ class TransactionService
         return $transaction->refresh();
     }
 
-    public function create(array $data, string $userId): Transaction
+    public function create(array $data): Transaction
     {
         // Check TripPrice if exists
         $filters = [
@@ -63,7 +63,7 @@ class TransactionService
         }
 
         $transactionData = collect($data)
-            ->merge(['user_id' => $userId, 'trip_price_id' => $tripPriceCheck->items()[0]->id])
+            ->merge(['trip_price_id' => $tripPriceCheck->items()[0]->id])
             ->toArray();
 
         $transaction = $this->transactionRepository->create($transactionData);
@@ -140,7 +140,7 @@ class TransactionService
         }
 
         if (! $transaction->status->canTransitionTo($newStatus)) {
-            throw ValidationException::withMessages(['status' => "Gagal Update dari {$transaction->status->value} ke {$newStatus->value}.",]);
+            throw ValidationException::withMessages(['status' => "Gagal Update dari {$transaction->status} ke {$newStatus}.",]);
         }
 
         return $this->transactionRepository->updateStatus($transaction, $status);

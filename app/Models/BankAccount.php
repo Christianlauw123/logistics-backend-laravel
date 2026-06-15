@@ -2,18 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['bank_name', 'account_identifier_number', 'account_number', 'account_name', 'deleted_at'])]
-class BankAccount extends Model
+#[Fillable(['bank_name', 'account_identifier_number', 'account_number', 'account_name', 'deleted_at', 'last_updated_by_id', 'user_id'])]
+class BankAccount extends BaseModel
 {
-    use HasUuids, SoftDeletes;
-    protected $keyType = 'string';
-    public $incrementing = false;
 
     protected $casts = [
         'deleted_at'  => 'datetime',

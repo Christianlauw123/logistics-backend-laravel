@@ -13,17 +13,17 @@ enum TransactionDetailStatus: string {
     // Goal: Get Transaction Detail that requested, to get the total of request that approved and done (which is tranferred)
     public static function approvedDefaults(): array{
         return [
-            self::APPROVED->value,
-            self::DONE->value
+            self::APPROVED,
+            self::DONE
         ];
     }
 
     // Goal: Get Transaction Detail that requested, to get the total of requested
     public static function requestedDefaults(): array{
         return [
-            self::SUBMITTED->value,
-            self::APPROVED->value,
-            self::DONE->value
+            self::SUBMITTED,
+            self::APPROVED,
+            self::DONE
         ];
     }
 

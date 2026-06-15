@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
-#[Fillable(['amount', 'note', 'purpose', 'status', 'transaction_id', 'deleted_at'])]
-class TransactionDetail extends Model
+#[Fillable(['amount', 'note', 'purpose', 'status', 'transaction_id', 'deleted_at', 'is_special_case', 'last_updated_by_id', 'user_id'])]
+class TransactionDetail extends BaseModel
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids, SoftDeletes, LogsActivity;
     protected $keyType = 'string';
     public $incrementing = false;
 
