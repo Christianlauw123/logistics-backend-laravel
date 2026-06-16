@@ -18,6 +18,10 @@ return new class extends Migration
                   ->nullable() // Keep nullable so existing users don't break during migration
                   ->constrained('sub_districts')
                   ->nullOnDelete();
+            $table->foreignUuid('revision_trip_price_id')
+                  ->nullable() // Keep nullable so existing users don't break during migration
+                  ->constrained('trip_prices')
+                  ->nullOnDelete();
         });
     }
 
@@ -28,7 +32,8 @@ return new class extends Migration
     {
         Schema::table('transactions', function (Blueprint $table) {
             $table->dropForeign(['revision_dest_sub_district_id']);
-            $table->dropColumn(['revision_trip_price_amount', 'revision_dest_sub_district_id', 'revision_destination_district']);
+            $table->dropForeign(['revision_trip_price_id']);
+            $table->dropColumn(['revision_trip_price_amount', 'revision_dest_sub_district_id', 'revision_destination_district', 'revision_trip_price_id']);
         });
     }
 };

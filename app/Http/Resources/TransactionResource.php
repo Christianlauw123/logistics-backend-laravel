@@ -25,6 +25,7 @@ class TransactionResource extends JsonResource
             'do_date'                   => $this->do_date,
             'do_actual_date'            => $this->do_actual_date,
             'created_at'                => $this->created_at,
+            'updated_at'                => $this->updated_at,
             'vehicle_plate'             => $this->vehicle_plate,
             'vehicle_type'              => $this->vehicle_type,
             'vehicle_capacity'          => $this->vehicle_capacity,
@@ -45,11 +46,17 @@ class TransactionResource extends JsonResource
             'driver_id'                 => $this->driver_id,
             'revision_dest_sub_district_id' => $this->revision_dest_sub_district_id,
             'revision_trip_price_amount'    => $this->revision_trip_price_amount,
+            'revision_destination_district' => $this->revision_destination_district,
+            'revision_trip_price_id'    => $this->revision_trip_price_id,
             'current_total'             => $this->calculations['current_total'] ?? 0, // Custom Fields
             'current_total_approved'    => $this->calculations['current_total_approved'] ?? 0, // Custom Fields
             // Conditional: only load if relation is already loaded
             // Prevents N+1 — never loads relation just for the resource
             'user' => $this->whenLoaded('user', fn () => [
+                'id'   => $this->user->id,
+                'name' => $this->user->name,
+            ]),
+            'lastUpdatedBy'=> $this->whenLoaded('lastUpdatedBy', fn () => [
                 'id'   => $this->user->id,
                 'name' => $this->user->name,
             ]),

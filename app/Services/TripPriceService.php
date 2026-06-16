@@ -124,4 +124,20 @@ class TripPriceService
         $uniqueData = $results->getCollection()->unique('id')->values();
         return Collection::make(['data' => $uniqueData]);
     }
+
+    /**
+     * Trip Price Check For specific route
+     *
+     */
+    public function tripPriceCheck(array $filters): array{
+        $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
+
+        if (count($tripPriceCheck->items()) <= 0) {
+            throw ValidationException::withMessages([
+                'trip_price' => 'Base price for this customer and route not exists.',
+            ]);
+        }
+
+        return $tripPriceCheck->items();
+    }
 }

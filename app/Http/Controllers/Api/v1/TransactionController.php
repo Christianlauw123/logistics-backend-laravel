@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\StoreTransactionRequest;
+use App\Http\Requests\Transaction\UpdateTransactionDestinationRequest;
 use App\Http\Requests\Transaction\UpdateTransactionRequest;
 use App\Http\Requests\Transaction\UpdateTransactionStatusRequest;
 use App\Http\Resources\TransactionResource;
@@ -58,8 +59,7 @@ class TransactionController extends Controller
     {
         return new TransactionResource(
             $this->transactionService->create(
-                $request->validated(),
-                $request->user()->id,
+                $request->validated()
             )
         );
     }
@@ -92,6 +92,16 @@ class TransactionController extends Controller
     {
         return new TransactionResource(
             $this->transactionService->changeStatus($transactionId, $request->validated('status'))
+        );
+    }
+
+    /**
+     * PATCH /api/v1/transactions/{transaction}/destination
+     */
+    public function updateDestination(UpdateTransactionDestinationRequest $request, string $transactionId): TransactionResource
+    {
+        return new TransactionResource(
+            $this->transactionService->updateDestination($transactionId, $request->validated())
         );
     }
 

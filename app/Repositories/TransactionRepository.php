@@ -101,6 +101,7 @@ class TransactionRepository
     {
         return Transaction::with([
             'user',
+            'lastUpdatedBy',
             'transactionDetails.attachment',
             'attachments',
             'bankAccount',
@@ -114,12 +115,16 @@ class TransactionRepository
     public function create(array $data): Transaction
     {
         $transaction = Transaction::create($data);
+        $this->prePopulateCreateTransaction($transaction);
+
         return $transaction->refresh();
     }
 
     public function update(Transaction $transaction, array $data): Transaction
     {
         $transaction->update($data);
+        $this->prePopulateTransaction($transaction->refresh());
+        $transaction->refresh()->save();
 
         return $transaction->refresh();
     }
@@ -131,14 +136,24 @@ class TransactionRepository
         return $transaction->refresh();
     }
 
+    public function updateRevisionDestination(Transaction $transaction, array $data): Transaction
+    {
+        $transaction->update($data);
+        $this->prePopulateRevisionDestinationTransaction($transaction->refresh());
+        return $transaction->refresh();
+    }
+
     public function delete(Transaction $transaction): void
     {
         $transaction->delete();
     }
 
     // Custom Function
-    public function prePopulateTransaction(string $transactionId): void {
-        $transaction = $this->findByIdOrFail($transactionId)->refresh();
+    /**
+     * prePopulateTransaction after Create and Update
+     *
+     */
+    public function prePopulateTransaction(Transaction $transaction): void {
         $transaction->trip_price_amount = $transaction->tripPrice->base_price;
         $transaction->vehicle_plate = $transaction->vehicle->plate_number;
         $transaction->vehicle_type = $transaction->vehicle->type;
@@ -148,16 +163,30 @@ class TransactionRepository
         $transaction->bank_account_num = $transaction->bankAccount->account_identifier_number;
         $transaction->customer_name = $transaction->customer->name;
         $transaction->driver_name = $transaction->driver->name;
-        $transaction->save();
     }
 
-    public function prePopulateCreateTransaction(string $transactionId): void {
-        $transaction = $this->findByIdOrFail($transactionId)->refresh();
+    /**
+     * prePopulateTransaction after Creation only
+     *
+     */
+    public function prePopulateCreateTransaction(Transaction $transaction): void {
+        $this->prePopulateTransaction($transaction);
         $transaction->status = TransactionStatus::SUBMITTED;
         $transaction->do_date = $transaction->created_at->timezone('Asia/Jakarta');
         $transaction->revision_dest_sub_district_id  = $transaction->dest_sub_district_id;
         $transaction->revision_trip_price_amount = $transaction->tripPrice->base_price;
         $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->destinationSubDistrict);
+        $transaction->revision_trip_price_id = $transaction->trip_price_id;
+        $transaction->save();
+    }
+
+    /**
+     * prePopulateTransaction after Update the revision destination
+     *
+     */
+    public function prePopulateRevisionDestinationTransaction(Transaction $transaction): void {
+        $transaction->revision_trip_price_amount = $transaction->revisionTripPrice->base_price;
+        $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->revisionDestinationSubDistrict);
         $transaction->save();
     }
 

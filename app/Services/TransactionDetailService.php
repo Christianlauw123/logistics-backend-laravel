@@ -141,7 +141,7 @@ class TransactionDetailService
             $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
 
             $newStatus = TransactionDetailStatus::tryFrom($status);
-            var_dump($newStatus);
+
             if (!$newStatus) {
                 throw ValidationException::withMessages([
                     'status' => "Status tidak valid.",
@@ -154,7 +154,7 @@ class TransactionDetailService
                 ]);
             }
 
-            if (request()->user()->role !== 'Super Admin'){
+            if (request()->user()->role->name !== 'Super Admin'){
                 if (! $transactionDetail->status->canTransitionTo($newStatus)) {
                     throw ValidationException::withMessages([
                         'status' => "Gagal Update dari {$transactionDetail->status} ke {$newStatus}.",

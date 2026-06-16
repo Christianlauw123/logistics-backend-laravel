@@ -106,7 +106,7 @@ class AttachmentService
                 throw ValidationException::withMessages(['status' => "Status tidak valid.",]);
             }
 
-            if (request()->user()->role !== 'Super Admin'){
+            if (request()->user()->role->name !== 'Super Admin'){
                 if (! $attachment->status->canTransitionTo($newStatus)) {
                     throw ValidationException::withMessages(['status' => "Gagal Update dari {$attachment->status} ke {$newStatus}.",]);
                 }
