@@ -28,7 +28,6 @@ class ExportTransactionsJob implements ShouldQueue
     public $tries = 3;
     public $backoff = [60, 120]; // Retry delays in seconds
 
-    private readonly TransactionService $transactionService;
     /**
      * Create a new job instance.
      */
@@ -38,29 +37,56 @@ class ExportTransactionsJob implements ShouldQueue
         $this->sort = $sort;
         $this->filePath = $filePath;
         $this->jobId = $jobId;
-        $this->transactionService = app(TransactionService::class);
     }
 
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(TransactionService $transactionService): void
     {
         try {
             // Build query with filters, Get all transactions (no pagination for export)
-            $transactions = $this->transactionService->getExportData($this->filters, $this->sort);
-
+            $transactions = $transactionService->getExportData($this->filters, $this->sort);
             // Create spreadsheet
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->setTitle('Transactions');
 
             // Define headers
-            $headers = ['DO Date', 'DO Actual Date', 'DO Number', 'Customer', 'Vehicle Plate', 'Destination Address', 'Trip Amount', 'Origin', 'Destination', 'Status', 'Created At', 'Detail Tujuan', 'Detail_Amount', 'Detail_Status', 'Detail_Created_At'];
+            $headers = [
+                'Status',
+                'Tanggal DO Dibuat',
+                'NO DO',
+                'Tanggal Aktual DO',
+                'Pelanggan',
+                'Akun Bank',
+                'Supir',
+                'Plat Kendaraan',
+                'Biaya Trip Normal',
+                'Asal',
+                'Tujuan',
+                'Ada Revisi Tujuan',
+                'Tujuan Revisi',
+                'Biaya Trip Revisi',
+                'Dibuat Oleh',
+                'Tanggal Dibuat',
+                'Terakhir diubah oleh',
+                'Tanggal Terakhir diubah',
+                'Detail_Status',
+                'Detail Keperluan',
+                'Detail Jumlah',
+                'Detail Catatan',
+                'Detail Kasus Khusus',
+                'Detail Bukti',
+                'Detail Dibuat Oleh',
+                'Detail Tanggal Dibuat',
+                'Detail Terakhir diubah oleh',
+                'Detail Tanggal Terakhir diubah',
+                ];
             $sheet->fromArray([$headers], null, 'A1');
 
             // Style header row
-            $headerStyle = $sheet->getStyle('A1:O1');
+            $headerStyle = $sheet->getStyle('A1:AB1');
             $headerStyle->getFont()->setBold(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FFFFFFFF'));
             $headerStyle->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF366092');
             $headerStyle->getAlignment()->setHorizontal('center')->setVertical('center');
@@ -69,26 +95,40 @@ class ExportTransactionsJob implements ShouldQueue
             $row = 2;
             foreach ($transactions as $transaction) {
                 foreach($transaction->transactionDetails as $detail) {
-                    $sheet->setCellValue('A' . $row, $transaction->do_date);
-                    $sheet->setCellValue('B' . $row, $transaction->do_actual_date);
+                    $sheet->setCellValue('A' . $row, $transaction->status->value);
+                    $sheet->setCellValue('B' . $row, $transaction->do_date);
                     $sheet->setCellValue('C' . $row, $transaction->do_number);
-                    $sheet->setCellValue('D' . $row, $transaction->customer_name ?? '-');
-                    $sheet->setCellValue('E' . $row, $transaction->vehicle_plate ?? '-');
-                    $sheet->setCellValue('F' . $row, $transaction->dest_address ?? '-');
-                    $sheet->setCellValue('G' . $row, $transaction->trip_price_amount);
-                    $sheet->setCellValue('H' . $row, $transaction->origin_district ?? '-');
-                    $sheet->setCellValue('I' . $row, $transaction->destination_district ?? '-');
-                    $sheet->setCellValue('J' . $row, $transaction->status);
-                    $sheet->setCellValue('K' . $row, $transaction->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i'));
+                    $sheet->setCellValue('D' . $row, $transaction->do_actual_date ?? '-');
+                    $sheet->setCellValue('E' . $row, $transaction->customer_name ?? '-');
+                    $sheet->setCellValue('F' . $row, $transaction->bank_account_num ?? '-');
+                    $sheet->setCellValue('G' . $row, $transaction->driver_name ?? '-');
+                    $sheet->setCellValue('H' . $row, $transaction->vehicle_plate ?? '-');
+                    $sheet->setCellValue('I' . $row, $transaction->trip_price_amount);
+                    $sheet->setCellValue('J' . $row, $transaction->origin_district ?? '-');
+                    $sheet->setCellValue('K' . $row, $transaction->destination_district ?? '-');
+                    $sheet->setCellValue('L' . $row, $transaction->dest_sub_district_id != $transaction->revision_dest_sub_district_id ? 'y' : 'n');
+                    $sheet->setCellValue('M' . $row, $transaction->revision_destination_district ?? '-');
+                    $sheet->setCellValue('N' . $row, $transaction->revision_trip_price_amount ?? '-');
+                    $sheet->setCellValue('O' . $row, $transaction->user->email ?? '-');
+                    $sheet->setCellValue('P' . $row, $transaction->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
+                    $sheet->setCellValue('Q' . $row, $transaction->lastUpdatedBy->email ?? '-');
+                    $sheet->setCellValue('R' . $row, $transaction->updated_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
+
                     // Detail columns
-                    $sheet->setCellValue('L' . $row, $detail->purpose ?? '-');
-                    $sheet->setCellValue('M' . $row, $detail->amount ?? '-');
-                    $sheet->setCellValue('N' . $row, $detail->status ?? '-');
-                    $sheet->setCellValue('O' . $row, $detail->created_at ?  $detail->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') : '-');
+                    $sheet->setCellValue('S' . $row, $detail->status->value ?? '-');
+                    $sheet->setCellValue('T' . $row, $detail->purpose ?? '-');
+                    $sheet->setCellValue('U' . $row, $detail->amount ?? '-');
+                    $sheet->setCellValue('V' . $row, $detail->note ?? '-');
+                    $sheet->setCellValue('W' . $row, $detail->is_special_case ? 'y' : 'n');
+                    $sheet->setCellValue('X' . $row, $detail->attachment->file_url ?? '-');
+                    $sheet->setCellValue('Y' . $row, $detail->user->email ?? '-');
+                    $sheet->setCellValue('Z' . $row, $detail->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
+                    $sheet->setCellValue('AA' . $row, $detail->lastUpdatedBy->email ?? '-');
+                    $sheet->setCellValue('AB' . $row, $detail->updated_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
 
                     // Alternate row colors for readability
                     if ($row % 2 === 0) {
-                        $sheet->getStyle('A' . $row . ':O' . $row)
+                        $sheet->getStyle('A' . $row . ':AB' . $row)
                             ->getFill()
                             ->setFillType(Fill::FILL_SOLID)
                             ->getStartColor()
@@ -115,12 +155,28 @@ class ExportTransactionsJob implements ShouldQueue
             $sheet->getColumnDimension('M')->setWidth(15);
             $sheet->getColumnDimension('N')->setWidth(15);
             $sheet->getColumnDimension('O')->setWidth(20);
+            $sheet->getColumnDimension('P')->setWidth(15);
+            $sheet->getColumnDimension('Q')->setWidth(20);
+            $sheet->getColumnDimension('R')->setWidth(20);
+            $sheet->getColumnDimension('S')->setWidth(15);
+            $sheet->getColumnDimension('T')->setWidth(15);
+            $sheet->getColumnDimension('U')->setWidth(20);
+            $sheet->getColumnDimension('V')->setWidth(15);
+            $sheet->getColumnDimension('W')->setWidth(20);
+            $sheet->getColumnDimension('X')->setWidth(20);
+            $sheet->getColumnDimension('Y')->setWidth(15);
+            $sheet->getColumnDimension('Z')->setWidth(15);
+            $sheet->getColumnDimension('AA')->setWidth(20);
+            $sheet->getColumnDimension('AB')->setWidth(20);
+
 
             // Format date columns
-            $sheet->getStyle('A2:A' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD');
             $sheet->getStyle('B2:B' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD');
-            $sheet->getStyle('K2:K' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
-            $sheet->getStyle('O2:O' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
+            $sheet->getStyle('D2:D' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD');
+            $sheet->getStyle('P2:P' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
+            $sheet->getStyle('R2:R' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
+            $sheet->getStyle('Z2:Z' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
+            $sheet->getStyle('AB2:AB' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
 
             // Write to storage
             $writer = new Xlsx($spreadsheet);
@@ -145,6 +201,7 @@ class ExportTransactionsJob implements ShouldQueue
                 'status' => 'failed',
                 'job_id' => $this->jobId,
                 'error' => $exception->getMessage(),
+                'trace' => $exception->getTrace(),
                 'timestamp' => now(),
             ];
 

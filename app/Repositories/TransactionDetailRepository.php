@@ -12,6 +12,8 @@ class TransactionDetailRepository
         return TransactionDetail::with([
             'transaction',
             'attachment',
+            'lastUpdatedBy',
+            'user'
         ])->find($id);
     }
 
@@ -20,6 +22,8 @@ class TransactionDetailRepository
         return TransactionDetail::with([
             'transaction',
             'attachment',
+            'lastUpdatedBy',
+            'user'
         ])->findOrFail($id);
     }
 

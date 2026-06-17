@@ -1,0 +1,19 @@
+flowchart LR
+  Client[Client (Web / Mobile / Internal)] -->|HTTP/API| API[routes/api.php]
+  API --> Controllers[Controllers\n(app/Http/Controllers)]
+  Controllers --> Services[Services\n(app/Services)]
+  Services --> Repos[Repositories\n(app/Repositories)]
+  Repos --> DB[(Database)]
+
+  Services -->|enqueue| Queue[Queue]
+  Queue --> Workers[Workers\n(queue:work)]
+  Workers --> Storage[Storage / Filesystems]
+
+  Controllers --> Resources[API Resources\n(app/Http/Resources)]
+  DB -->|events| Activity[Activity Log / Observability]
+  Workers -->|logs| Activity
+  subgraph Observability
+    Activity
+    Logs[Logging / Sentry / Monitoring]
+  end
+  Activity --> Logs

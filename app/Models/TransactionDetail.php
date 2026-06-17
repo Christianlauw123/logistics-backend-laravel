@@ -26,6 +26,10 @@ class TransactionDetail extends BaseModel
         return $this->belongsTo(Transaction::class);
     }
 
+    public function lastUpdatedBy(): BelongsTo{
+        return $this->belongsTo(User::class, 'last_updated_by_id');
+    }
+
     public function attachment(): HasOne{
         return $this->hasOne(Attachment::class);
     }

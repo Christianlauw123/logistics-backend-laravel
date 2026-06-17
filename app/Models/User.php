@@ -94,6 +94,10 @@ class User extends Authenticatable
         return $this->hasMany(TransactionDetail::class);
     }
 
+    public function lastUpdatedByTransactionDetails(): hasMany{
+        return $this->hasMany(TransactionDetail::class, 'last_updated_by_id');
+    }
+
     public function attachments(): HasMany {
         return $this->hasMany(Attachment::class);
     }

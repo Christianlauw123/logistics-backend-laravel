@@ -70,6 +70,7 @@ class TransactionResource extends JsonResource
                     'is_special_case' => $d->is_special_case,
                     // Attachment Transaction Detail
                     'attachment' => $d->attachment->file_url ?? null,
+                    'total_transfer' => request()->user()->role->name === 'Super Admin' ? $d->amount + ($d->amount_unique_number ?? 0) : 0,
                 ])
             ),
             'attachments' => $this->whenLoaded('attachments', fn () =>

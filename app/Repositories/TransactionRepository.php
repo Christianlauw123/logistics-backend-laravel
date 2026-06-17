@@ -103,6 +103,8 @@ class TransactionRepository
             'user',
             'lastUpdatedBy',
             'transactionDetails.attachment',
+            'transactionDetails.lastUpdatedBy',
+            'transactionDetails.user',
             'attachments',
             'bankAccount',
             'customer',
@@ -228,7 +230,7 @@ class TransactionRepository
         $sortBy        = in_array($sort['sort_by'] ?? '', self::SORTABLE) ? $sort['sort_by'] : 'created_at';
         $sortDirection = ($sort['sort_dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
 
-        return Transaction::query()->with(['transactionDetails'])
+        return Transaction::query()->with(['transactionDetails.lastUpdatedBy','transactionDetails.attachment'])
             ->when(
                 ! empty($filters['search']),
                 fn ($q) => $q->where(function ($q) use ($filters) {
@@ -241,6 +243,7 @@ class TransactionRepository
                       ->orWhere('note', 'ilike', "%{$filters['search']}%")
                       ->orWhere('origin_district', 'ilike', "%{$filters['search']}%")
                       ->orWhere('destination_district', 'ilike', "%{$filters['search']}%")
+                      ->orWhere('revision_destination_district', 'ilike', "%{$filters['search']}%")
                       ->orWhere('do_number', 'ilike', "%{$filters['search']}%");
                 })
             )
