@@ -31,20 +31,27 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::apiResource('vehicles', VehicleController::class)->names('vehicles.v1')->whereUuid('vehicle');
     Route::apiResource('drivers', DriverController::class)->names('drivers.v1')->whereUuid('driver');
 
-    // Extra: status update as a separate endpoint (PATCH, not PUT)
-    Route::patch('transactions/{transaction}/status', [TransactionController::class, 'updateStatus'])->name('transactions.v1.update_status')->whereUuid('transaction');
-    Route::patch('attachments/{attachment}/status', [AttachmentController::class, 'updateStatus'])->name('attachments.v1.update_status')->whereUuid('attachment');
-    Route::patch('transaction_details/{transaction_detail}/status', [TransactionDetailController::class, 'updateStatus'])->name('transaction_details.v1.update_status')->whereUuid('transaction_detail');
-
-    Route::get('auth/me', [AuthController::class, 'me'])->name('auth.v1.me');
-    Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.v1.logout');
-
+    // Custom Routes
+    // Transaction
     Route::get('/transactions/{transaction}/current-limit', [TransactionController::class, 'getCurrentTransactionLimit'])->name('transactions.v1.current_limit')->whereUuid('transaction');
+    Route::patch('transactions/{transaction}/status', [TransactionController::class, 'updateStatus'])->name('transactions.v1.update_status')->whereUuid('transaction');
+    Route::patch('transactions/{transaction}/destination', [TransactionController::class, 'updateDestination'])->name('transactions.v1.update_revision_destination')->whereUuid('transaction');
     // Export Transaction
     Route::post('/transactions/export', [TransactionController::class, 'export'])->name('transactions.v1.export');
     Route::get('/transactions/export-status/{jobId}', [TransactionController::class, 'checkStatus'])->name('transactions.v1.export_status');
     Route::get('/transactions/download-export/{jobId}', [TransactionController::class, 'downloadExport'])->name('transactions.v1.download_export');
 
+    // Attachment
+    Route::patch('attachments/{attachment}/status', [AttachmentController::class, 'updateStatus'])->name('attachments.v1.update_status')->whereUuid('attachment');
+
+    // Transaction Details
+    Route::patch('transaction_details/{transaction_detail}/status', [TransactionDetailController::class, 'updateStatus'])->name('transaction_details.v1.update_status')->whereUuid('transaction_detail');
+
+    // Auth
+    Route::get('auth/me', [AuthController::class, 'me'])->name('auth.v1.me');
+    Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.v1.logout');
+
+    // Trip Price
     Route::get('/trip_prices/sub_districts', [TripPriceController::class, 'listTripAllowedSubDistricts'])->name('trip_price.v1.listTripAllowedSubDistricts');
 });
 

@@ -29,6 +29,10 @@ class TripPrice extends BaseModel
         return $this->hasMany(Transaction::class);
     }
 
+    public function revisionTransactions(): HasMany{
+        return $this->hasMany(Transaction::class, 'revision_trip_price_id');
+    }
+
     // Named relations — same table, two different roles
     public function originSubDistrict(): BelongsTo
     {

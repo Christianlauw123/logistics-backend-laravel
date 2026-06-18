@@ -16,15 +16,17 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Throwable;
 
 class TransactionService
 {
     public function __construct(
         private readonly TransactionRepository $transactionRepository,
         private readonly TransactionDetailRepository $transactionDetailRepository,
-        private readonly TripPriceRepository $tripPriceRepository,
+        private readonly TripPriceService $tripPriceService,
         private readonly GoogleDriveService $googleDriveService,
     ) {}
 
@@ -48,113 +50,162 @@ class TransactionService
 
     public function create(array $data): Transaction
     {
-        // Check TripPrice if exists
-        $filters = [
-            'customer_id' => $data['customer_id'],
-            'origin_sub_district_id' => $data['origin_sub_district_id'],
-            'dest_sub_district_id' => $data['dest_sub_district_id']
-        ];
-        $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
-
-        if (count($tripPriceCheck->items()) <= 0) {
-            throw ValidationException::withMessages([
-                'trip_price' => 'Base price for this customer and route not exists.',
+        DB::beginTransaction();
+        try{
+            // Check TripPrice if exists
+            $tripPriceCheck = $this->tripPriceService->tripPriceCheck([
+                'customer_id' => $data['customer_id'],
+                'origin_sub_district_id' => $data['origin_sub_district_id'],
+                'dest_sub_district_id' => $data['dest_sub_district_id']
             ]);
+
+            $transactionData = collect($data)
+                ->merge(['trip_price_id' => $tripPriceCheck[0]->id])
+                ->toArray();
+
+            $transaction = $this->transactionRepository->create($transactionData);
+
+            // Add Driver Commission + Claim
+            foreach (array_column(TransactionDetailDefaultItem::cases(), 'value') as $value) {
+                $this->transactionDetailRepository->create(['purpose' => $value, 'amount' => 0, 'transaction_id' => $transaction->id, 'status' => TransactionDetailStatus::SUBMITTED]);
+            }
+
+            // Create Drive Folder
+            $subFolder = 'PENDING_DO_NUMBER';
+            if($transaction->do_number !== null)
+                $subFolder = $transaction->do_number;
+            $subFolder = 'transactions;'.$transaction->do_date.';'.$subFolder.';'.$transaction->customer_name.';'.$transaction->id;
+
+            // Set file_provider & file_folder_id to db
+            // Create Folder Parent
+            $transactionFolder = $this->googleDriveService->createFolder($subFolder);
+            $transactionDetailFolder = $this->googleDriveService->createFolder('transaction_details', $transactionFolder);
+            $this->transactionRepository->setGoogleDriveFolder($transaction->id, $transactionFolder, $transactionDetailFolder);
+
+            DB::commit();
+            return $transaction;
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
         }
-
-        $transactionData = collect($data)
-            ->merge(['trip_price_id' => $tripPriceCheck->items()[0]->id])
-            ->toArray();
-
-        $transaction = $this->transactionRepository->create($transactionData);
-
-        // Add Driver Commission + Claim
-        foreach (array_column(TransactionDetailDefaultItem::cases(), 'value') as $value) {
-            $this->transactionDetailRepository->create(['purpose' => $value, 'amount' => 0, 'transaction_id' => $transaction->id, 'status' => TransactionDetailStatus::SUBMITTED]);
-        }
-
-        // Create Drive Folder
-        $subFolder = 'PENDING_DO_NUMBER';
-        if($transaction->do_number !== null)
-            $subFolder = $transaction->do_number;
-        $subFolder = 'transactions;'.$transaction->do_date.';'.$subFolder.';'.$transaction->customer_name.';'.$transaction->id;
-
-        $this->transactionRepository->prePopulateTransaction($transaction->id);
-        $this->transactionRepository->prePopulateCreateTransaction($transaction->id);
-
-        // Set file_provider & file_folder_id to db
-        // Create Folder Parent
-        $transactionFolder = $this->googleDriveService->createFolder($subFolder);
-        $transactionDetailFolder = $this->googleDriveService->createFolder('transaction_details', $transactionFolder);
-        $this->transactionRepository->setGoogleDriveFolder($transaction->id, $transactionFolder, $transactionDetailFolder);
-
-        return $transaction;
     }
 
     public function update(string $id, array $data): Transaction
     {
-        // Check TripPrice if exists
-        // $filters = [
-        //     'customer_id' => $data['customer_id'],
-        //     'origin_sub_district_id' => $data['origin_sub_district_id'],
-        //     'dest_sub_district_id' => $data['dest_sub_district_id']
-        // ];
-        // $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
-
-        // if (count($tripPriceCheck->items()) <= 0) {
-        //     throw ValidationException::withMessages([
-        //         'trip_price' => 'Base price for this customer and route not exists.',
-        //     ]);
-        // }
-
-        $transaction = $this->transactionRepository->findByIdOrFail($id);
-
-        // Business rule: only SUBMITTED transactions can be edited
-        if ($transaction->status !== 'SUBMITTED') {
-            throw ValidationException::withMessages([
-                'status' => 'Only SUBMITTED transactions can be edited.',
+        DB::beginTransaction();
+        try{
+            // Check TripPrice if exists
+            $tripPriceCheck = $this->tripPriceService->tripPriceCheck([
+                'customer_id' => $data['customer_id'],
+                'origin_sub_district_id' => $data['origin_sub_district_id'],
+                'dest_sub_district_id' => $data['dest_sub_district_id']
             ]);
+
+            $transaction = $this->transactionRepository->findByIdOrFail($id);
+
+            // Business rule: only SUBMITTED transactions can be edited
+            $transactionData = collect($data)->toArray();
+
+            if ($transaction->status !== TransactionStatus::SUBMITTED) {
+                // throw ValidationException::withMessages([
+                //     'status' => 'Only SUBMITTED transactions can be edited.',
+                // ]);
+                $transactionData = collect($data)->except([
+                    'customer_id',
+                    'trip_price_id',
+                    'vehicle_id',
+                    'bank_account_id',
+                    'driver_id',
+                    'origin_sub_district_id',
+                    'dest_sub_district_id',
+                    'revision_dest_sub_district_id',
+                    'revision_trip_price_id'
+                ])->toArray();
+            }
+
+            $this->transactionRepository->update($transaction, $transactionData);
+            $transaction->refresh();
+
+            // Update Drive Folder Name
+            $subFolder = 'PENDING_DO_NUMBER';
+            if($transaction->do_number !== null)
+                $subFolder = $transaction->do_number;
+            $subFolder = 'transactions;'.$transaction->do_date.';'.$subFolder.';'.$transaction->customer_name.';'.$transaction->id;
+            $this->googleDriveService->renameFolder($transaction->file_folder_id, $subFolder);
+            DB::commit();
+            return $transaction;
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
         }
-
-        $this->transactionRepository->update($transaction, $data);
-        $this->transactionRepository->prePopulateTransaction($transaction->id);
-        $transaction->refresh();
-
-        // Update Drive Folder Name
-        $subFolder = 'PENDING_DO_NUMBER';
-        if($transaction->do_number !== null)
-            $subFolder = $transaction->do_number;
-        $subFolder = 'transactions;'.$transaction->do_date.';'.$subFolder.';'.$transaction->customer_name.';'.$transaction->id;
-        $this->googleDriveService->renameFolder($transaction->file_folder_id, $subFolder);
-
-        return $transaction;
     }
 
     public function changeStatus(string $id, string $status): Transaction
     {
-        $transaction = $this->transactionRepository->findByIdOrFail($id);
+        DB::beginTransaction();
+        try{
+            $transaction = $this->transactionRepository->findByIdOrFail($id);
 
-        $newStatus = TransactionStatus::tryFrom($status);
-        if (!$newStatus) {
-            throw ValidationException::withMessages(['status' => "Status tidak valid.",]);
+            $newStatus = TransactionStatus::tryFrom($status);
+            if (!$newStatus) {
+                throw ValidationException::withMessages(['status' => "Status tidak valid.",]);
+            }
+
+            if (request()->user()->role->name !== 'Super Admin'){
+                if (! $transaction->status->canTransitionTo($newStatus)) {
+                    throw ValidationException::withMessages(['status' => "Gagal Update dari {$transaction->status->value} ke {$newStatus->value}.",]);
+                }
+            }
+            $transaction = $this->transactionRepository->updateStatus($transaction, $status);
+            DB::commit();
+            return $transaction->refresh();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
         }
+    }
 
-        if (! $transaction->status->canTransitionTo($newStatus)) {
-            throw ValidationException::withMessages(['status' => "Gagal Update dari {$transaction->status} ke {$newStatus}.",]);
+    public function updateDestination(string $id, array $data): Transaction
+    {
+        DB::beginTransaction();
+        try{
+            $transaction = $this->transactionRepository->findByIdOrFail($id);
+
+            $tripPriceCheck = $this->tripPriceService->tripPriceCheck([
+                'customer_id' => $transaction->customer_id,
+                'origin_sub_district_id' => $transaction->origin_sub_district_id,
+                'dest_sub_district_id' => $data['revision_dest_sub_district_id']
+            ]);
+
+            $transactionData = collect($data)
+                ->merge(['revision_trip_price_id' => $tripPriceCheck[0]->id])
+                ->toArray();
+
+            $transaction = $this->transactionRepository->updateRevisionDestination($transaction, $transactionData);
+            DB::commit();
+            return $transaction->refresh();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
         }
-
-        return $this->transactionRepository->updateStatus($transaction, $status);
     }
 
     public function delete(string $id): void
     {
-        $transaction = $this->transactionRepository->findByIdOrFail($id);
+        DB::beginTransaction();
+        try{
+            $transaction = $this->transactionRepository->findByIdOrFail($id);
 
-        // Business rule: only SUBMITTED can be deleted
-        if($transaction->file_folder_id)
-            $this->googleDriveService->delete($transaction->file_folder_id);
+            // Business rule: only SUBMITTED can be deleted
+            if($transaction->file_folder_id)
+                $this->googleDriveService->delete($transaction->file_folder_id);
 
-        $this->transactionRepository->delete($transaction);
+            $this->transactionRepository->delete($transaction);
+            DB::commit();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     // Get Current Transaction Limit - Remaining

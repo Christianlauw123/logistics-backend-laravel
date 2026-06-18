@@ -25,6 +25,7 @@ class TransactionResource extends JsonResource
             'do_date'                   => $this->do_date,
             'do_actual_date'            => $this->do_actual_date,
             'created_at'                => $this->created_at,
+            'updated_at'                => $this->updated_at,
             'vehicle_plate'             => $this->vehicle_plate,
             'vehicle_type'              => $this->vehicle_type,
             'vehicle_capacity'          => $this->vehicle_capacity,
@@ -43,11 +44,19 @@ class TransactionResource extends JsonResource
             'origin_sub_district_id'    => $this->origin_sub_district_id,
             'dest_sub_district_id'      => $this->dest_sub_district_id,
             'driver_id'                 => $this->driver_id,
+            'revision_dest_sub_district_id' => $this->revision_dest_sub_district_id,
+            'revision_trip_price_amount'    => $this->revision_trip_price_amount,
+            'revision_destination_district' => $this->revision_destination_district,
+            'revision_trip_price_id'    => $this->revision_trip_price_id,
             'current_total'             => $this->calculations['current_total'] ?? 0, // Custom Fields
             'current_total_approved'    => $this->calculations['current_total_approved'] ?? 0, // Custom Fields
             // Conditional: only load if relation is already loaded
             // Prevents N+1 — never loads relation just for the resource
             'user' => $this->whenLoaded('user', fn () => [
+                'id'   => $this->user->id,
+                'name' => $this->user->name,
+            ]),
+            'lastUpdatedBy'=> $this->whenLoaded('lastUpdatedBy', fn () => [
                 'id'   => $this->user->id,
                 'name' => $this->user->name,
             ]),
@@ -58,15 +67,10 @@ class TransactionResource extends JsonResource
                     'amount'  => $d->amount,
                     'note'    => $d->note,
                     'status'  => $d->status,
+                    'is_special_case' => $d->is_special_case,
                     // Attachment Transaction Detail
-                    'attachments' => $d->relationLoaded('attachments', fn () =>
-                        $d->attachments->where('deleted_at',null)->map(fn ($a) => [
-                            'id'                   => $a->id,
-                            'file_url'             => $a->file_url,
-                            'extracted_do_number'  => $a->extracted_do_number,
-                            'is_verified'          => $a->is_verified,
-                        ])
-                    ),
+                    'attachment' => $d->attachment->file_url ?? null,
+                    'total_transfer' => request()->user()->role->name === 'Super Admin' ? $d->amount + ($d->amount_unique_number ?? 0) : 0,
                 ])
             ),
             'attachments' => $this->whenLoaded('attachments', fn () =>
@@ -75,6 +79,7 @@ class TransactionResource extends JsonResource
                     'file_url'             => $a->file_url,
                     'extracted_do_number'  => $a->extracted_do_number,
                     'is_verified'          => $a->is_verified,
+                    'original_file_name'   => $a->original_file_name ?? $a->id
                 ])
             ),
         ];

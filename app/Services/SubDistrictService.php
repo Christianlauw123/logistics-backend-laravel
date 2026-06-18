@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Models\SubDistrict;
 use App\Repositories\SubDistrictRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class SubDistrictService
 {
@@ -25,39 +27,51 @@ class SubDistrictService
 
     public function create(array $data): SubDistrict
     {
-        $exists = SubDistrict::where('district_id', $data['district_id'])
-            ->where('name', $data['name'])
-            ->whereNull('deleted_at')
-            ->exists();
+        DB::beginTransaction();
+        try{
+            $exists = SubDistrict::where('district_id', $data['district_id'])
+                ->where('name', $data['name'])
+                ->whereNull('deleted_at')
+                ->exists();
 
-        if ($exists) {
-            throw ValidationException::withMessages([
-                'name' => 'Sub district already exists in this district.',
-            ]);
+            if ($exists) {
+                throw ValidationException::withMessages([
+                    'name' => 'Sub district already exists in this district.',
+                ]);
+            }
+            $subDistrict = $this->subDistrictRepository->create($data);
+            DB::commit();
+            return $subDistrict->refresh();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
         }
-
-        return $this->subDistrictRepository->create($data);
     }
 
     public function update(string $id, array $data): SubDistrict
     {
-        $subDistrict = $this->subDistrictRepository->findOrFail($id);
-        return $this->subDistrictRepository->update($subDistrict, $data);
+        DB::beginTransaction();
+        try{
+            $subDistrict = $this->subDistrictRepository->findOrFail($id);
+            $this->subDistrictRepository->update($subDistrict, $data);
+            DB::commit();
+            return $subDistrict->refresh();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     public function delete(string $id): void
     {
-        $subDistrict = $this->subDistrictRepository->findOrFail($id);
-
-        // if (
-        //     $subDistrict->origstringripPrices()->exists() ||
-        //     $subDistrict->destinationTripPrices()->exists()
-        // ) {
-        //     throw ValidationException::withMessages([
-        //         'sub_district' => 'Cannot delete a sub-district that is used in trip prices.',
-        //     ]);
-        // }
-
-        $this->subDistrictRepository->delete($subDistrict);
+        DB::beginTransaction();
+        try{
+            $subDistrict = $this->subDistrictRepository->findOrFail($id);
+            $this->subDistrictRepository->delete($subDistrict);
+            DB::commit();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
+        }
     }
 }

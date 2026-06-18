@@ -1,115 +1,85 @@
-# Deployment Guide
+# Logistics Backend — Specification and Flow
 
-## 1. Google OAuth Setup
+This document describes the project structure and the main request/data flow. It is written to highlight the technical design and the business impact for stakeholders and engineers.
 
-1. Go to the [Google Cloud Console](https://console.cloud.google.com) and create an OAuth 2.0 Client ID and Secret.
-2. Add **Google Drive API** to your project.
-3. Set the following Redirect URIs on your OAuth client:
-   - `https://developers.google.com/oauthplayground`
-   - `https://google.com`
-4. Publish the OAuth consent screen.
-5. Go to [OAuth Playground](https://developers.google.com/oauthplayground) to generate a fully-refreshed token.
+**Project At-a-Glance**
+- **Name**: Logistics Backend (Laravel)
+- **Stack**: Laravel 13+, PHP 8.5+, MySQL/Postgres, Redis (queues/cache), Sanctum for API auth
+- **Primary responsibility**: manage transactions, trips, drivers, vehicles, customers, and related imports/exports.
 
----
+**Project Structure**
+- **`app/`**: Core application code.
+  - **`app/Http/Controllers/`**: HTTP controllers for API endpoints. See [app/Http/Controllers](app/Http/Controllers/).
+  - **`app/Models/`**: Eloquent models: `Transaction`, `TransactionDetail`, `User`, `Driver`, `Vehicle`, etc.
+  - **`app/Repositories/`**: Data access abstractions — repository pattern used to isolate DB queries.
+  - **`app/Services/`**: Business logic and orchestration used by controllers and jobs.
+  - **`app/Import/`**, **`app/Export`**, **`app/Jobs/`**: Import/export processes and queued jobs (e.g., `ExportTransactionsJob.php`).
+  - **`app/Providers/`**: Service providers and bindings (DI container registration).
 
-## 2. Configure Environment Variables
+- **`routes/`**: Routing configuration.
+  - Primary API routes: [routes/api.php](routes/api.php)
 
-1. Get your Google Drive folder ID from the URL:
-https://drive.google.com/drive/folders/{YOUR_FOLDER_ID}
+- **`config/`**: Configuration (queues, mail, activity log, filesystems).
 
-2. Navigate to your project folder and open `.env`:
-```bash
-   cd {folder}
-   nano .env
-```
+- **`database/`**: Migrations, seeders, and factories for schema and test data.
 
-3. Add the following:
-```env
-   GOOGLE_DRIVE_FOLDER_ID=
-   BACKUP_DRIVE_FOLDER_ID=
-```
+- **`resources/`**: Frontend assets and Blade views used for any admin/UI pages.
 
----
+- **`tests/`**: Unit and integration tests (Pest/phpunit).
 
-## 3. NGINX & SSL Setup
+- **`public/`**: Web entry (`index.php`) and static assets.
 
-Test and reload NGINX:
-```bash
-sudo nginx -t                  # Must output "ok"
-sudo systemctl reload nginx
-```
+- **`Docker/`** and **`docker-compose.yml`**: Containers used for local development and deployment.
 
-Install Certbot and generate an SSL certificate:
-```bash
-sudo apt install certbot python3-certbot-nginx -y
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
-```
+**Main Idea of the Flow (High-level)**
+The system is designed as an API-first backend with clear separation between HTTP handling, business logic, and persistence. Key flow stages:
 
-Test auto-renewal:
-```bash
-sudo certbot renew --dry-run
-```
+1. Client request
+	- API clients (web, mobile, or internal services) call endpoints defined in [routes/api.php](routes/api.php).
+	- Authentication uses Laravel Sanctum if token-based session needed.
 
----
+2. HTTP Layer
+	- Requests are received by controller actions in `app/Http/Controllers/`.
+	- Controllers validate input using `app/Http/Requests/` classes and return API Resources (`app/Http/Resources/`).
 
-## 4. Docker — First-Time Setup
+3. Application / Business Logic
+	- Controllers delegate work to `app/Services/` which implement domain use-cases (e.g., create transaction, assign driver).
+	- Services coordinate with `app/Repositories/` for data access and with `app/Models/` for persistence.
 
-```bash
-docker compose up -d --build
-```
+4. Persistence
+	- Repositories encapsulate complex queries; Models handle relationships and Eloquent events.
+	- Migrations and seeders in `database/` ensure schema consistency across environments.
 
-Then run these one by one:
+5. Asynchronous Work
+	- Heavy or long-running tasks (import/export, notifications, large reports) are queued as Jobs in `app/Jobs/` and processed by queue workers (`php artisan queue:work`).
+	- Files and attachments are stored according to `config/filesystems.php` and backed by the configured driver (local, S3, etc.).
 
-```bash
-# Generate app key
-docker compose exec app php artisan key:generate
-# If the above fails, add --force:
-# docker compose exec app php artisan key:generate --force
+6. Auditing & Observability
+	- Activity logs and audit trails are configured via `config/activitylog.php` and model observers.
+	- Logging and queue supervisors ensure errors are captured and retried when appropriate.
 
-# Run database migrations
-docker compose exec app php artisan migrate --force
-
-# Seed the database (first time only)
-docker compose exec app php artisan db:seed
-
-# Cache config and routes for production
-docker compose exec app php artisan config:cache
-docker compose exec app php artisan route:cache
-```
+**Business Impact**
+- **Operational efficiency**: Automates transaction import/export and trip management, reducing manual data entry and reconciliation time.
+- **Data integrity & compliance**: Centralized models, migrations, and activity logs enable auditable changes and consistent schemas across environments.
+- **Scalability**: Queue-based processing isolates heavy tasks and allows horizontal worker scaling.
+- **Faster decision-making**: Clean API resources and consolidated data model allow downstream reporting and BI tools to consume reliable datasets.
+- **Reduced time-to-market**: Clear separation of controllers, services, and repositories speeds feature development and testing.
 
 ---
 
-## 5. Stopping Docker
+**Architecture Diagram (Mermaid)**
 
-```bash
-docker compose down
+```mermaid
+flowchart LR
+	Client[Client (Web / Mobile / Internal)] -->|HTTP/API| API[routes/api.php]
+	API --> Controllers[Controllers\n(app/Http/Controllers)]
+	Controllers --> Services[Services\n(app/Services)]
+	Services --> Repos[Repositories\n(app/Repositories)]
+	Repos --> DB[(Database)]
+
+	Controllers --> Resources[API Resources\n(app/Http/Resources)]
+	Activity --> Logs
 ```
 
-> ⚠️ **Never use `-v`** — it will wipe the database.
+If you'd like, I can refine the diagram for a presentation (SVG/PDF) or add a one-page onboarding PDF.
 
----
-
-## 6. Deploying Updates
-
-```bash
-cd /apps/logistics
-git pull
-docker compose up -d --build app
-docker compose exec app php artisan migrate --force
-docker compose exec app php artisan config:cache
-docker compose exec app php artisan route:cache
-```
-
-**If there was a rebase:**
-```bash
-git fetch origin
-git reset --hard origin/master
-```
-
----
-
-## 7. Accessing the Database
-
-```bash
-docker compose exec postgres psql -U username -d database_name
-```

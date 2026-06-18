@@ -18,9 +18,9 @@ class StoreDriverRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.unique' => 'Nama pelanggan ini sudah ada',
-            'name.required' => 'Nama pelanggan harus diisi',
-            'name.max' => 'Nama pelanggan maksimal 100 karakter',
+            'name.unique' => 'Nama driver ini sudah ada',
+            'name.required' => 'Nama driver harus diisi',
+            'name.max' => 'Nama driver maksimal 100 karakter',
         ];
     }
 }

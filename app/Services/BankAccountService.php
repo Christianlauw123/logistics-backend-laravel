@@ -6,6 +6,8 @@ use App\Models\BankAccount;
 use App\Repositories\BankAccountRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class BankAccountService
 {
@@ -30,18 +32,42 @@ class BankAccountService
 
     public function create(array $data): BankAccount
     {
-        return $this->bankAccountRepository->create($data);
+        DB::beginTransaction();
+        try{
+            $bankAccount = $this->bankAccountRepository->create($data);
+            DB::commit();
+            return $bankAccount->refresh();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     public function update(string $id, array $data): BankAccount
     {
-        $bankAccount = $this->bankAccountRepository->findOrFail($id);
-        return $this->bankAccountRepository->update($bankAccount, $data);
+        DB::beginTransaction();
+        try{
+            $bankAccount = $this->bankAccountRepository->findOrFail($id);
+            $this->bankAccountRepository->update($bankAccount, $data);
+            DB::commit();
+            return $bankAccount->refresh();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     public function delete(string $id): void
     {
-        $bankAccount = $this->bankAccountRepository->findOrFail($id);
+        DB::beginTransaction();
+        try{
+            $bankAccount = $this->bankAccountRepository->findOrFail($id);
+            $this->bankAccountRepository->delete($bankAccount);
+            DB::commit();
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
+        }
 
         // if ($bankAccount->transactions()->exists()) {
         //     throw ValidationException::withMessages([
@@ -49,6 +75,5 @@ class BankAccountService
         //     ]);
         // }
 
-        $this->bankAccountRepository->delete($bankAccount);
     }
 }

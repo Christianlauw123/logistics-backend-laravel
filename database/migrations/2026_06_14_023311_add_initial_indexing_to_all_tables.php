@@ -38,15 +38,15 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('bank_accounts', function (Blueprint $table) {
-            $table->dropUnique('account_identifier_number');
+            $table->dropUnique(['account_identifier_number']);
         });
 
         Schema::table('districts', function (Blueprint $table) {
-            $table->dropIndex('name');
+            $table->dropIndex(['name']);
         });
 
         Schema::table('sub_districts', function (Blueprint $table) {
-            $table->dropIndex('name');
+            $table->dropIndex(['name']);
         });
 
         Schema::table('trip_prices', function (Blueprint $table) {
@@ -54,7 +54,7 @@ return new class extends Migration
         });
 
         Schema::table('vehicles', function (Blueprint $table) {
-            $table->dropIndex('name');
+            $table->dropIndex(['name']);
         });
     }
 };

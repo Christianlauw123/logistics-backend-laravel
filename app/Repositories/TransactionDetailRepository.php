@@ -12,6 +12,8 @@ class TransactionDetailRepository
         return TransactionDetail::with([
             'transaction',
             'attachment',
+            'lastUpdatedBy',
+            'user'
         ])->find($id);
     }
 
@@ -20,6 +22,8 @@ class TransactionDetailRepository
         return TransactionDetail::with([
             'transaction',
             'attachment',
+            'lastUpdatedBy',
+            'user'
         ])->findOrFail($id);
     }
 
@@ -46,9 +50,10 @@ class TransactionDetailRepository
         $transactionDetail->delete();
     }
 
-    public function prePopulateCreateTransactionDetail(string $transactionDetailId): void {
+    public function prePopulateCreateTransactionDetail(string $transactionDetailId, int $uniqueNumber): void {
         $transactionDetail = $this->findByIdOrFail($transactionDetailId)->refresh();
         $transactionDetail->status = TransactionDetailStatus::SUBMITTED;
+        $transactionDetail->amount_unique_number = $uniqueNumber;
         $transactionDetail->save();
     }
 }

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('activity_log', function (Blueprint $table) {
+        Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->string('log_name')->nullable()->index();
             $table->text('description');
@@ -17,7 +17,13 @@ return new class extends Migration
             $table->nullableUuidMorphs('causer', 'causer');
             $table->json('attribute_changes')->nullable();
             $table->json('properties')->nullable();
-            $table->timestamps();
+            $table->timestampsTz();
+            $table->timestampTz('deleted_at')->nullable();
         });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('activity_logs');
     }
 };

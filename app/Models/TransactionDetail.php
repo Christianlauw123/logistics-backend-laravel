@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
-#[Fillable(['amount', 'note', 'purpose', 'status', 'transaction_id', 'deleted_at', 'is_special_case', 'last_updated_by_id', 'user_id'])]
+#[Fillable(['amount', 'note', 'purpose', 'status', 'transaction_id', 'transaction_detail_id', 'deleted_at', 'is_special_case', 'last_updated_by_id', 'user_id', 'amount_unique_number'])]
 class TransactionDetail extends BaseModel
 {
     use HasUuids, SoftDeletes, LogsActivity;
@@ -24,6 +24,10 @@ class TransactionDetail extends BaseModel
     ];
     public function transaction(): BelongsTo{
         return $this->belongsTo(Transaction::class);
+    }
+
+    public function lastUpdatedBy(): BelongsTo{
+        return $this->belongsTo(User::class, 'last_updated_by_id');
     }
 
     public function attachment(): HasOne{

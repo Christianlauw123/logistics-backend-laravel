@@ -24,7 +24,6 @@ class AttachmentController extends Controller
         return new AttachmentResource(
             $this->attachmentService->create(
                 $request->validated(),
-                $request->user()?->id,
             )
         );
     }
