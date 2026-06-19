@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\v1\ActivityController;
 use App\Http\Controllers\Api\v1\AttachmentController;
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\BankAccountController;
@@ -36,6 +37,10 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/transactions/{transaction}/current-limit', [TransactionController::class, 'getCurrentTransactionLimit'])->name('transactions.v1.current_limit')->whereUuid('transaction');
     Route::patch('transactions/{transaction}/status', [TransactionController::class, 'updateStatus'])->name('transactions.v1.update_status')->whereUuid('transaction');
     Route::patch('transactions/{transaction}/destination', [TransactionController::class, 'updateDestination'])->name('transactions.v1.update_revision_destination')->whereUuid('transaction');
+    Route::get('transactions/{transaction}/logs', [ActivityController::class, 'transactionLogs'])->name('transactions.v1.logs')->whereUuid('transaction');
+    Route::get('transactions/{transaction}/logs_details', [ActivityController::class, 'getTransactionDetailHistory'])->name('transactions.v1.logs_details')->whereUuid('transaction');
+
+
     // Export Transaction
     Route::post('/transactions/export', [TransactionController::class, 'export'])->name('transactions.v1.export');
     Route::get('/transactions/export-status/{jobId}', [TransactionController::class, 'checkStatus'])->name('transactions.v1.export_status');

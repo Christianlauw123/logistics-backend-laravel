@@ -14,10 +14,6 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 #[Fillable(['name', 'deleted_at','district_id', 'last_updated_by_id', 'user_id'])]
 class SubDistrict extends BaseModel
 {
-    use HasUuids, SoftDeletes, LogsActivity;
-    protected $keyType = 'string';
-    public $incrementing = false;
-
     protected $casts = [
         'deleted_at'  => 'datetime',
     ];
