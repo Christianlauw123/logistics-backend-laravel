@@ -21,7 +21,6 @@ class UpdateTransactionDetailStatusRequest extends FormRequest
             ];
 
         return [
-
         ];
     }
 
