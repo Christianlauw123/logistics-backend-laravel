@@ -30,10 +30,9 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=ext-gd
 
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache \
-    && mkdir -p storage/app/backups \
-    && chmod -R 755 storage/app/backups
+RUN mkdir -p storage/app/backups \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 9000
 

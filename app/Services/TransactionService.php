@@ -56,7 +56,8 @@ class TransactionService
             $tripPriceCheck = $this->tripPriceService->tripPriceCheck([
                 'customer_id' => $data['customer_id'],
                 'origin_sub_district_id' => $data['origin_sub_district_id'],
-                'dest_sub_district_id' => $data['dest_sub_district_id']
+                'dest_sub_district_id' => $data['dest_sub_district_id'],
+                'weight_category' => $data['weight_category'],
             ]);
 
             $transactionData = collect($data)
@@ -98,18 +99,31 @@ class TransactionService
             $tripPriceCheck = $this->tripPriceService->tripPriceCheck([
                 'customer_id' => $data['customer_id'],
                 'origin_sub_district_id' => $data['origin_sub_district_id'],
-                'dest_sub_district_id' => $data['dest_sub_district_id']
+                'dest_sub_district_id' => $data['dest_sub_district_id'],
+                'weight_category' => $data['weight_category']
             ]);
 
             $transaction = $this->transactionRepository->findByIdOrFail($id);
 
             // Business rule: only SUBMITTED transactions can be edited
-            $transactionData = collect($data)->toArray();
+            $transactionData = collect($data)->merge([
+                'trip_price_id' => $tripPriceCheck[0]->id,
+                'revision_dest_sub_district_id' => $data['dest_sub_district_id'],
+                'revision_trip_price_id' => $tripPriceCheck[0]->id,
+            ])->toArray();
 
             if ($transaction->status !== TransactionStatus::SUBMITTED) {
                 // throw ValidationException::withMessages([
                 //     'status' => 'Only SUBMITTED transactions can be edited.',
                 // ]);
+                // if not submitted and changed, check the newest price
+                $tripPriceCheck = $this->tripPriceService->tripPriceCheck([
+                    'customer_id' => $transaction->customer_id,
+                    'origin_sub_district_id' => $transaction->origin_sub_district_id,
+                    'dest_sub_district_id' => $data['dest_sub_district_id'],
+                    'weight_category' => $data['weight_category']
+                ]);
+
                 $transactionData = collect($data)->except([
                     'customer_id',
                     'trip_price_id',
@@ -118,13 +132,15 @@ class TransactionService
                     'driver_id',
                     'origin_sub_district_id',
                     'dest_sub_district_id',
-                    'revision_dest_sub_district_id',
-                    'revision_trip_price_id'
-                ])->toArray();
+                ])->merge(
+                    [
+                        'revision_dest_sub_district_id' => $data['dest_sub_district_id'],
+                        'revision_trip_price_id' => $tripPriceCheck[0]->id,
+                    ]
+                )->toArray();
             }
 
             $this->transactionRepository->update($transaction, $transactionData);
-            $transaction->refresh();
 
             // Update Drive Folder Name
             $subFolder = 'PENDING_DO_NUMBER';
@@ -156,34 +172,9 @@ class TransactionService
                     throw ValidationException::withMessages(['status' => "Gagal Update dari {$transaction->status->value} ke {$newStatus->value}.",]);
                 }
             }
-            $transaction = $this->transactionRepository->updateStatus($transaction, $status);
+            $this->transactionRepository->updateStatus($transaction, $status);
             DB::commit();
-            return $transaction->refresh();
-        }catch(Throwable $e){
-            DB::rollBack();
-            throw $e;
-        }
-    }
-
-    public function updateDestination(string $id, array $data): Transaction
-    {
-        DB::beginTransaction();
-        try{
-            $transaction = $this->transactionRepository->findByIdOrFail($id);
-
-            $tripPriceCheck = $this->tripPriceService->tripPriceCheck([
-                'customer_id' => $transaction->customer_id,
-                'origin_sub_district_id' => $transaction->origin_sub_district_id,
-                'dest_sub_district_id' => $data['revision_dest_sub_district_id']
-            ]);
-
-            $transactionData = collect($data)
-                ->merge(['revision_trip_price_id' => $tripPriceCheck[0]->id])
-                ->toArray();
-
-            $transaction = $this->transactionRepository->updateRevisionDestination($transaction, $transactionData);
-            DB::commit();
-            return $transaction->refresh();
+            return $transaction;
         }catch(Throwable $e){
             DB::rollBack();
             throw $e;

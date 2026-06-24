@@ -25,6 +25,7 @@ class StoreTransactionRequest extends FormRequest
             'origin_sub_district_id'    => ['required', 'uuid', 'exists:sub_districts,id'],
             'dest_sub_district_id'      => ['required', 'uuid', 'exists:sub_districts,id'],
             'driver_id'                 => ['required', 'uuid', 'exists:drivers,id'],
+            'weight_category'           => ['required', 'numeric', 'min:0'],
             'note'                      => ['nullable', 'string'],
         ];
     }

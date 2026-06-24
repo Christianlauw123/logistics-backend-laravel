@@ -20,6 +20,7 @@ class StoreTripPriceRequest extends FormRequest
                 'different:origin_sub_district_id', // origin and destination cannot be the same
             ],
             'base_price' => ['required', 'numeric', 'min:0'],
+            'weight_category' => ['required', 'numeric', 'min:0'],
         ];
     }
 
@@ -29,6 +30,9 @@ class StoreTripPriceRequest extends FormRequest
             'base_price.required' => 'Harga dasar harus diisi',
             'base_price.numeric' => 'Harga dasar harus berupa angka',
             'base_price.min' => 'Harga dasar harus bernilai positif',
+            'weight_category.required' => 'Kategori harus diisi',
+            'weight_category.numeric' => 'Kategori harus berupa angka',
+            'weight_category.min' => 'Kategori harus bernilai positif',
             'customer_id.required' => 'Pelanggan harus diisi',
             'customer_id.uuid' => 'Pelanggan tidak valid',
             'customer_id.exists' => 'Pelanggan tidak ditemukan',

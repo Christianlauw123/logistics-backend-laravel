@@ -19,7 +19,7 @@ class TransactionDetailResource extends JsonResource
             'updated_at'    => $this->updated_at,
             'deleted_at'    => $this->deleted_at,
             'is_special_case' => $this->is_special_case,
-            'total_transfer' => $request()->user()->role->name === 'Super Admin' ? $this->amount + ($this->amount_unique_number ?? 0) : 0,
+            'total_transfer' => request()->user()->role->name === 'Super Admin' ? $this->amount + ($this->amount_unique_number ?? 0) : 0,
             'transaction'   => $this->whenLoaded('transaction', fn () => [
                 'id'        => $this->transaction->id,
             ]),

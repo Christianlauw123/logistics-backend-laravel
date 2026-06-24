@@ -20,9 +20,9 @@ class ActivityService
         return $this->reformatResults($logs);
     }
 
-    public function getTransactionDetailHistory(string $transactionId): array
+    public function getTransactionDetailHistory(string $transactionDetailId): array
     {
-        $logs = $this->activityRepository->getLogsTransactionDetailsByTransactionId($transactionId);
+        $logs = $this->activityRepository->getLogsTransactionDetailsByTransactionId($transactionDetailId);
 
         return $this->reformatResults($logs);
 

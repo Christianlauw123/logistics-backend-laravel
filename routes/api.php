@@ -36,9 +36,8 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     // Transaction
     Route::get('/transactions/{transaction}/current-limit', [TransactionController::class, 'getCurrentTransactionLimit'])->name('transactions.v1.current_limit')->whereUuid('transaction');
     Route::patch('transactions/{transaction}/status', [TransactionController::class, 'updateStatus'])->name('transactions.v1.update_status')->whereUuid('transaction');
-    Route::patch('transactions/{transaction}/destination', [TransactionController::class, 'updateDestination'])->name('transactions.v1.update_revision_destination')->whereUuid('transaction');
     Route::get('transactions/{transaction}/logs', [ActivityController::class, 'transactionLogs'])->name('transactions.v1.logs')->whereUuid('transaction');
-    Route::get('transactions/{transaction}/logs_details', [ActivityController::class, 'getTransactionDetailHistory'])->name('transactions.v1.logs_details')->whereUuid('transaction');
+    Route::get('transaction_details/{transaction_detail}/logs_details', [ActivityController::class, 'transactionDetailLogs'])->name('transaction_details.v1.logs_details')->whereUuid('transaction');
 
 
     // Export Transaction
@@ -58,7 +57,9 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // Trip Price
     Route::get('/trip_prices/sub_districts', [TripPriceController::class, 'listTripAllowedSubDistricts'])->name('trip_price.v1.listTripAllowedSubDistricts');
+    Route::get('/trip_prices/sub_districts/weight_categories', [TripPriceController::class, 'listTripWeightCategorySubDistricts'])->name('trip_price.v1.listTripWeightCategorySubDistricts');
 });
+
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login'])->name('auth.v1.login');

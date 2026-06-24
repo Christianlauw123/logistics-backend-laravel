@@ -39,13 +39,14 @@ class TripPriceService
             $filters = [
                 'customer_id' => $data['customer_id'],
                 'origin_sub_district_id' => $data['origin_sub_district_id'],
-                'dest_sub_district_id' => $data['dest_sub_district_id']
+                'dest_sub_district_id' => $data['dest_sub_district_id'],
+                'weight_category' => $data['weight_category'],
             ];
             $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
 
             if (count($tripPriceCheck->items()) > 0) {
                 throw ValidationException::withMessages([
-                    'trip_price' => 'A price for this customer and route already exists.',
+                    'trip_price' => 'Harga Trip customer untuk kategori ini sudah ada',
                 ]);
             }
             $tripPrice = $this->tripPriceRepository->create($data);
@@ -122,6 +123,22 @@ class TripPriceService
 
         // Get the underlying collection, make it unique by 'id', and reset array keys
         $uniqueData = $results->getCollection()->unique('id')->values();
+        return Collection::make(['data' => $uniqueData]);
+    }
+
+    // Used to get the category
+    public function listTripPriceSubDistrictsCategory(array $filters): Collection
+    {
+        $results = [];
+        $destinationSubDistricts = $this->tripPriceRepository->paginate($filters);
+        $results = $destinationSubDistricts->through(function ($item) {
+            return [
+                'weight_category'   => $item->weight_category,
+            ];
+        });
+
+        // Get the underlying collection, make it unique by 'id', and reset array keys
+        $uniqueData = $results->getCollection()->unique('weight_category')->values();
         return Collection::make(['data' => $uniqueData]);
     }
 

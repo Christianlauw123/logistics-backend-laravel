@@ -65,9 +65,11 @@ class ExportTransactionsJob implements ShouldQueue
                 'Biaya Trip Normal',
                 'Asal',
                 'Tujuan',
+                'Tonase',
                 'Ada Revisi Tujuan',
                 'Tujuan Revisi',
                 'Biaya Trip Revisi',
+                'Revisi Tonase',
                 'Dibuat Oleh',
                 'Tanggal Dibuat',
                 'Terakhir diubah oleh',
@@ -106,29 +108,31 @@ class ExportTransactionsJob implements ShouldQueue
                     $sheet->setCellValue('I' . $row, $transaction->trip_price_amount);
                     $sheet->setCellValue('J' . $row, $transaction->origin_district ?? '-');
                     $sheet->setCellValue('K' . $row, $transaction->destination_district ?? '-');
-                    $sheet->setCellValue('L' . $row, $transaction->dest_sub_district_id != $transaction->revision_dest_sub_district_id ? 'y' : 'n');
-                    $sheet->setCellValue('M' . $row, $transaction->revision_destination_district ?? '-');
-                    $sheet->setCellValue('N' . $row, $transaction->revision_trip_price_amount ?? '-');
-                    $sheet->setCellValue('O' . $row, $transaction->user->email ?? '-');
-                    $sheet->setCellValue('P' . $row, $transaction->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
-                    $sheet->setCellValue('Q' . $row, $transaction->lastUpdatedBy->email ?? '-');
-                    $sheet->setCellValue('R' . $row, $transaction->updated_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
+                    $sheet->setCellValue('L' . $row, $transaction->weight_category ?? '-');
+                    $sheet->setCellValue('M' . $row, $transaction->dest_sub_district_id != $transaction->revision_dest_sub_district_id ? 'y' : 'n');
+                    $sheet->setCellValue('N' . $row, $transaction->revision_destination_district ?? '-');
+                    $sheet->setCellValue('O' . $row, $transaction->revision_trip_price_amount ?? '-');
+                    $sheet->setCellValue('P' . $row, $transaction->revision_weight_category ?? '-');
+                    $sheet->setCellValue('Q' . $row, $transaction->user->email ?? '-');
+                    $sheet->setCellValue('R' . $row, $transaction->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
+                    $sheet->setCellValue('S' . $row, $transaction->lastUpdatedBy->email ?? '-');
+                    $sheet->setCellValue('T' . $row, $transaction->updated_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
 
                     // Detail columns
-                    $sheet->setCellValue('S' . $row, $detail->status->value ?? '-');
-                    $sheet->setCellValue('T' . $row, $detail->purpose ?? '-');
-                    $sheet->setCellValue('U' . $row, $detail->amount ?? '-');
-                    $sheet->setCellValue('V' . $row, $detail->note ?? '-');
-                    $sheet->setCellValue('W' . $row, $detail->is_special_case ? 'y' : 'n');
-                    $sheet->setCellValue('X' . $row, $detail->attachment->file_url ?? '-');
-                    $sheet->setCellValue('Y' . $row, $detail->user->email ?? '-');
-                    $sheet->setCellValue('Z' . $row, $detail->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
-                    $sheet->setCellValue('AA' . $row, $detail->lastUpdatedBy->email ?? '-');
-                    $sheet->setCellValue('AB' . $row, $detail->updated_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
+                    $sheet->setCellValue('U' . $row, $detail->status?->value ?? '-');
+                    $sheet->setCellValue('V' . $row, $detail->purpose ?? '-');
+                    $sheet->setCellValue('W' . $row, $detail->amount ?? '-');
+                    $sheet->setCellValue('X' . $row, $detail->note ?? '-');
+                    $sheet->setCellValue('Y' . $row, $detail->is_special_case ? 'y' : 'n');
+                    $sheet->setCellValue('Z' . $row, $detail->attachment->file_url ?? '-');
+                    $sheet->setCellValue('AA' . $row, $detail->user->email ?? '-');
+                    $sheet->setCellValue('AB' . $row, $detail->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
+                    $sheet->setCellValue('AC' . $row, $detail->lastUpdatedBy->email ?? '-');
+                    $sheet->setCellValue('AD' . $row, $detail->updated_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
 
                     // Alternate row colors for readability
                     if ($row % 2 === 0) {
-                        $sheet->getStyle('A' . $row . ':AB' . $row)
+                        $sheet->getStyle('A' . $row . ':AD' . $row)
                             ->getFill()
                             ->setFillType(Fill::FILL_SOLID)
                             ->getStartColor()
@@ -168,26 +172,35 @@ class ExportTransactionsJob implements ShouldQueue
             $sheet->getColumnDimension('Z')->setWidth(15);
             $sheet->getColumnDimension('AA')->setWidth(20);
             $sheet->getColumnDimension('AB')->setWidth(20);
+            $sheet->getColumnDimension('AC')->setWidth(20);
+            $sheet->getColumnDimension('AD')->setWidth(20);
 
 
             // Format date columns
             $sheet->getStyle('B2:B' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD');
             $sheet->getStyle('D2:D' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD');
-            $sheet->getStyle('P2:P' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
-            $sheet->getStyle('R2:R' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
-            $sheet->getStyle('Z2:Z' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
-            $sheet->getStyle('AB2:AB' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
+            $sheet->getStyle('R2:R' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:mm');
+            $sheet->getStyle('T2:T' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:mm');
+            $sheet->getStyle('AB2:AB' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:mm');
+            $sheet->getStyle('AD2:AD' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:mm');
 
-            // Write to storage
+            // Write to storage safely using a physical system temp file
             $writer = new Xlsx($spreadsheet);
-            $stream = fopen('php://temp', 'w+');
-            $writer->save($stream);
-            rewind($stream);
-            $excelContent = stream_get_contents($stream);
-            fclose($stream);
+            $tempFilePath = tempnam(sys_get_temp_dir(), 'xlsx_export_');
+            $writer->save($tempFilePath);
+
+            // // Write to storage
+            // $writer = new Xlsx($spreadsheet);
+            // $stream = fopen('php://temp', 'w+');
+            // $writer->save($stream);
+            // rewind($stream);
+            // $excelContent = stream_get_contents($stream);
+            // fclose($stream);
 
             // Save file
-            Storage::disk('local')->put($this->filePath, $excelContent);
+            // Storage::disk('local')->put($this->filePath, $excelContent);
+            Storage::disk('local')->put($this->filePath, fopen($tempFilePath, 'r+'));
+            unlink($tempFilePath);
 
             // Log success
             Log::info("Export job {$this->jobId} completed successfully", [

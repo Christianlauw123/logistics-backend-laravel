@@ -117,6 +117,7 @@ class TransactionRepository
     public function create(array $data): Transaction
     {
         $transaction = Transaction::create($data);
+        $transaction->refresh();
         $this->prePopulateCreateTransaction($transaction);
 
         return $transaction->refresh();
@@ -125,8 +126,8 @@ class TransactionRepository
     public function update(Transaction $transaction, array $data): Transaction
     {
         $transaction->update($data);
-        $this->prePopulateTransaction($transaction->refresh());
-        $transaction->refresh()->save();
+        $transaction->refresh();
+        $this->prePopulateRevisionDestinationTransaction($transaction);
 
         return $transaction->refresh();
     }
@@ -135,13 +136,6 @@ class TransactionRepository
     {
         $transaction->update(['status' => $status]);
 
-        return $transaction->refresh();
-    }
-
-    public function updateRevisionDestination(Transaction $transaction, array $data): Transaction
-    {
-        $transaction->update($data);
-        $this->prePopulateRevisionDestinationTransaction($transaction->refresh());
         return $transaction->refresh();
     }
 
@@ -165,6 +159,8 @@ class TransactionRepository
         $transaction->bank_account_num = $transaction->bankAccount->account_identifier_number;
         $transaction->customer_name = $transaction->customer->name;
         $transaction->driver_name = $transaction->driver->name;
+        $transaction->weight_category = $transaction->tripPrice->weight_category;
+        $transaction->save();
     }
 
     /**
@@ -175,10 +171,11 @@ class TransactionRepository
         $this->prePopulateTransaction($transaction);
         $transaction->status = TransactionStatus::SUBMITTED;
         $transaction->do_date = $transaction->created_at->timezone('Asia/Jakarta');
-        $transaction->revision_dest_sub_district_id  = $transaction->dest_sub_district_id;
+        // $transaction->revision_dest_sub_district_id  = $transaction->dest_sub_district_id;
         $transaction->revision_trip_price_amount = $transaction->tripPrice->base_price;
         $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->destinationSubDistrict);
-        $transaction->revision_trip_price_id = $transaction->trip_price_id;
+        // $transaction->revision_trip_price_id = $transaction->trip_price_id;
+        $transaction->revision_weight_category = $transaction->tripPrice->weight_category;
         $transaction->save();
     }
 
@@ -187,7 +184,9 @@ class TransactionRepository
      *
      */
     public function prePopulateRevisionDestinationTransaction(Transaction $transaction): void {
+        $this->prePopulateTransaction($transaction);
         $transaction->revision_trip_price_amount = $transaction->revisionTripPrice->base_price;
+        $transaction->revision_weight_category = $transaction->revisionTripPrice->weight_category;
         $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->revisionDestinationSubDistrict);
         $transaction->save();
     }
