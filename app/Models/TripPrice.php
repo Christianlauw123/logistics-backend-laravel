@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
-#[Fillable(['base_price', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id', 'deleted_at', 'last_updated_by_id', 'user_id'])]
+#[Fillable(['base_price', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id', 'deleted_at', 'last_updated_by_id', 'user_id', 'weight_category'])]
 class TripPrice extends BaseModel
 {
 

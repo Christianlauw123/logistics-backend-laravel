@@ -48,6 +48,7 @@ class TransactionResource extends JsonResource
             'revision_trip_price_amount'    => $this->revision_trip_price_amount,
             'revision_destination_district' => $this->revision_destination_district,
             'revision_trip_price_id'    => $this->revision_trip_price_id,
+            'weight_capacity'           => $this->weight_capacity,
             'current_total'             => $this->calculations['current_total'] ?? 0, // Custom Fields
             'current_total_approved'    => $this->calculations['current_total_approved'] ?? 0, // Custom Fields
             // Conditional: only load if relation is already loaded

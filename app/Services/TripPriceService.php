@@ -39,7 +39,8 @@ class TripPriceService
             $filters = [
                 'customer_id' => $data['customer_id'],
                 'origin_sub_district_id' => $data['origin_sub_district_id'],
-                'dest_sub_district_id' => $data['dest_sub_district_id']
+                'dest_sub_district_id' => $data['dest_sub_district_id'],
+                'weight_category' => $data['dest_sub_district_id'],
             ];
             $tripPriceCheck = $this->tripPriceRepository->paginate($filters);
 

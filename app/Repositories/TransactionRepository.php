@@ -165,6 +165,7 @@ class TransactionRepository
         $transaction->bank_account_num = $transaction->bankAccount->account_identifier_number;
         $transaction->customer_name = $transaction->customer->name;
         $transaction->driver_name = $transaction->driver->name;
+        $transaction->weight_category = $transaction->tripPrice->weight_category;
     }
 
     /**
@@ -188,6 +189,7 @@ class TransactionRepository
      */
     public function prePopulateRevisionDestinationTransaction(Transaction $transaction): void {
         $transaction->revision_trip_price_amount = $transaction->revisionTripPrice->base_price;
+        $transaction->revision_weight_category = $transaction->revisionTripPrice->revision_weight_category;
         $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->revisionDestinationSubDistrict);
         $transaction->save();
     }

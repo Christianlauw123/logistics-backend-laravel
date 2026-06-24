@@ -20,6 +20,7 @@ class UpdateTripPriceRequest extends FormRequest
                 'different:origin_sub_district_id', // origin and destination cannot be the same
             ],
             'base_price' => ['sometimes', 'numeric', 'min:0'],
+            'weight_category' => ['sometimes', 'numeric', 'min:0'],
         ];
     }
 
@@ -28,6 +29,8 @@ class UpdateTripPriceRequest extends FormRequest
         return [
             'base_price.numeric' => 'Harga dasar harus berupa angka',
             'base_price.min' => 'Harga dasar harus bernilai positif',
+            'weight_category.numeric' => 'Kategori harus berupa angka',
+            'weight_category.min' => 'Kategori harus bernilai positif',
             'customer_id.uuid' => 'Pelanggan tidak valid',
             'customer_id.exists' => 'Pelanggan tidak ditemukan',
             'origin_sub_district_id.uuid' => 'Kecamatan asal tidak valid',
