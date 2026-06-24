@@ -37,7 +37,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/transactions/{transaction}/current-limit', [TransactionController::class, 'getCurrentTransactionLimit'])->name('transactions.v1.current_limit')->whereUuid('transaction');
     Route::patch('transactions/{transaction}/status', [TransactionController::class, 'updateStatus'])->name('transactions.v1.update_status')->whereUuid('transaction');
     Route::get('transactions/{transaction}/logs', [ActivityController::class, 'transactionLogs'])->name('transactions.v1.logs')->whereUuid('transaction');
-    Route::get('transactions/{transaction}/logs_details', [ActivityController::class, 'getTransactionDetailHistory'])->name('transactions.v1.logs_details')->whereUuid('transaction');
+    Route::get('transaction_details/{transaction_detail}/logs_details', [ActivityController::class, 'transactionDetailLogs'])->name('transaction_details.v1.logs_details')->whereUuid('transaction');
 
 
     // Export Transaction

@@ -26,4 +26,16 @@ class ActivityController extends Controller
             'data' => $logs['data']    // Returns a flat array of all entries
         ]);
     }
+
+    public function transactionDetailLogs(string $id): JsonResponse
+    {
+        $logs = $this->activityService->getTransactionDetailHistory($id);
+
+        return response()->json([
+            'success' => true,
+            'transaction_id' => $id,
+            'count' => $logs['count'], // Handy reference of total log entries
+            'data' => $logs['data']    // Returns a flat array of all entries
+        ]);
+    }
 }

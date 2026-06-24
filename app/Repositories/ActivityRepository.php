@@ -19,11 +19,10 @@ class ActivityRepository
             ->get(); // Fetches the entire collection without pagination
     }
 
-    public function getLogsTransactionDetailsByTransactionId(string $transactionId): Collection
+    public function getLogsTransactionDetailsByTransactionId(string $transactionDetailId): Collection
     {
-        $transcationDetails = TransactionDetail::where('transaction_id', $transactionId)->pluck('id')->toArray();
         return Activity::where('subject_type', TransactionDetail::class)
-            ->where('subject_id', $transcationDetails)
+            ->where('subject_id', $transactionDetailId)
             ->with('causer')
             ->latest()
             ->get(); // Fetches the entire collection without pagination

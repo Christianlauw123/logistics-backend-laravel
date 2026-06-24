@@ -117,6 +117,7 @@ class TransactionRepository
     public function create(array $data): Transaction
     {
         $transaction = Transaction::create($data);
+        $transaction->refresh();
         $this->prePopulateCreateTransaction($transaction);
 
         return $transaction->refresh();
@@ -125,10 +126,9 @@ class TransactionRepository
     public function update(Transaction $transaction, array $data): Transaction
     {
         $transaction->update($data);
-        $this->prePopulateTransaction($transaction);
+        $transaction->refresh();
         $this->prePopulateRevisionDestinationTransaction($transaction);
-        
-        $transaction->save();
+
         return $transaction->refresh();
     }
 
@@ -171,10 +171,10 @@ class TransactionRepository
         $this->prePopulateTransaction($transaction);
         $transaction->status = TransactionStatus::SUBMITTED;
         $transaction->do_date = $transaction->created_at->timezone('Asia/Jakarta');
-        $transaction->revision_dest_sub_district_id  = $transaction->dest_sub_district_id;
+        // $transaction->revision_dest_sub_district_id  = $transaction->dest_sub_district_id;
         $transaction->revision_trip_price_amount = $transaction->tripPrice->base_price;
         $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->destinationSubDistrict);
-        $transaction->revision_trip_price_id = $transaction->trip_price_id;
+        // $transaction->revision_trip_price_id = $transaction->trip_price_id;
         $transaction->revision_weight_category = $transaction->tripPrice->weight_category;
         $transaction->save();
     }
@@ -184,6 +184,7 @@ class TransactionRepository
      *
      */
     public function prePopulateRevisionDestinationTransaction(Transaction $transaction): void {
+        $this->prePopulateTransaction($transaction);
         $transaction->revision_trip_price_amount = $transaction->revisionTripPrice->base_price;
         $transaction->revision_weight_category = $transaction->revisionTripPrice->weight_category;
         $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->revisionDestinationSubDistrict);

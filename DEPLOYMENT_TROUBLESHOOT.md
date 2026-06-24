@@ -130,3 +130,15 @@ cd {project folder}
 docker compose exec app composer install
 ```
 ---
+
+## 9. EXPORT FILE
+
+Export Loop:
+```bash
+docker compose exec app chown -R www-data:www-data storage
+docker compose exec app chmod -R 775 storage
+docker compose exec app ls -la storage
+```
+Retry Exporting
+
+---

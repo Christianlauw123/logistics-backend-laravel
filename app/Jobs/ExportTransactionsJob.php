@@ -119,7 +119,7 @@ class ExportTransactionsJob implements ShouldQueue
                     $sheet->setCellValue('T' . $row, $transaction->updated_at->timezone('Asia/Jakarta')->format('Y-m-d H:i') ?? '-');
 
                     // Detail columns
-                    $sheet->setCellValue('U' . $row, $detail->status->value ?? '-');
+                    $sheet->setCellValue('U' . $row, $detail->status?->value ?? '-');
                     $sheet->setCellValue('V' . $row, $detail->purpose ?? '-');
                     $sheet->setCellValue('W' . $row, $detail->amount ?? '-');
                     $sheet->setCellValue('X' . $row, $detail->note ?? '-');
@@ -179,21 +179,28 @@ class ExportTransactionsJob implements ShouldQueue
             // Format date columns
             $sheet->getStyle('B2:B' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD');
             $sheet->getStyle('D2:D' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD');
-            $sheet->getStyle('R2:R' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
-            $sheet->getStyle('T2:T' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
-            $sheet->getStyle('AB2:AB' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
-            $sheet->getStyle('AD2:AD' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:MM');
+            $sheet->getStyle('R2:R' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:mm');
+            $sheet->getStyle('T2:T' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:mm');
+            $sheet->getStyle('AB2:AB' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:mm');
+            $sheet->getStyle('AD2:AD' . ($row - 1))->getNumberFormat()->setFormatCode('YYYY-MM-DD HH:mm');
 
-            // Write to storage
+            // Write to storage safely using a physical system temp file
             $writer = new Xlsx($spreadsheet);
-            $stream = fopen('php://temp', 'w+');
-            $writer->save($stream);
-            rewind($stream);
-            $excelContent = stream_get_contents($stream);
-            fclose($stream);
+            $tempFilePath = tempnam(sys_get_temp_dir(), 'xlsx_export_');
+            $writer->save($tempFilePath);
+
+            // // Write to storage
+            // $writer = new Xlsx($spreadsheet);
+            // $stream = fopen('php://temp', 'w+');
+            // $writer->save($stream);
+            // rewind($stream);
+            // $excelContent = stream_get_contents($stream);
+            // fclose($stream);
 
             // Save file
-            Storage::disk('local')->put($this->filePath, $excelContent);
+            // Storage::disk('local')->put($this->filePath, $excelContent);
+            Storage::disk('local')->put($this->filePath, fopen($tempFilePath, 'r+'));
+            unlink($tempFilePath);
 
             // Log success
             Log::info("Export job {$this->jobId} completed successfully", [
