@@ -29,15 +29,17 @@ class TripPriceRepository
                 isset($filters['customer_id']),
                 fn ($q) => $q->where('customer_id', $filters['customer_id'])
             )
-
             ->when(
                 isset($filters['origin_sub_district_id']),
                 fn ($q) => $q->where('origin_sub_district_id', $filters['origin_sub_district_id'])
             )
-
             ->when(
                 isset($filters['dest_sub_district_id']),
                 fn ($q) => $q->where('dest_sub_district_id', $filters['dest_sub_district_id'])
+            )
+            ->when(
+                isset($filters['weight_category']),
+                fn ($q) => $q->where('weight_category', $filters['weight_category'])
             )
             ->when(
                 isset($filters['search']),
@@ -54,7 +56,7 @@ class TripPriceRepository
                 fn ($q) => $q->withTrashed()
             )
             ->orderBy('trip_prices.base_price')
-            ->select('id', 'base_price', 'created_at', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id')
+            ->select('id', 'base_price', 'created_at', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id', 'weight_category')
             ->paginate($perPage)
             ->withQueryString(); // keeps filters in pagination links
     }

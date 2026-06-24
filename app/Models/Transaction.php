@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
-#[Fillable(['trip_price_id', 'note', 'file_folder_id', 'driver_name', 'driver_id', 'file_sub_folder_id', 'file_provider', 'status', 'customer_id', 'vehicle_id', 'bank_account_id', 'origin_sub_district_id', 'dest_sub_district_id', 'user_id', 'trip_price_amount', 'origin_district', 'destination_district', 'dest_address', 'customer_name', 'vehicle_plate', 'bank_account_num', 'do_number', 'do_date', 'do_actual_date', 'vehicle_type', 'vehicle_capacity', 'transaction_capacity', 'transaction_items', 'deleted_at', 'last_updated_by_id', 'revision_trip_price_amount', 'revision_dest_sub_district_id', 'revision_destination_district', 'revision_trip_price_id'])]
+#[Fillable(['trip_price_id', 'note', 'file_folder_id', 'driver_name', 'driver_id', 'file_sub_folder_id', 'file_provider', 'status', 'customer_id', 'vehicle_id', 'bank_account_id', 'origin_sub_district_id', 'dest_sub_district_id', 'user_id', 'trip_price_amount', 'origin_district', 'destination_district', 'dest_address', 'customer_name', 'vehicle_plate', 'bank_account_num', 'do_number', 'do_date', 'do_actual_date', 'vehicle_type', 'vehicle_capacity', 'transaction_capacity', 'transaction_items', 'deleted_at', 'last_updated_by_id', 'revision_trip_price_amount', 'revision_dest_sub_district_id', 'revision_destination_district', 'revision_trip_price_id', 'weight_category', 'revision_weight_category'])]
 class Transaction extends BaseModel
 {
     protected $casts = [

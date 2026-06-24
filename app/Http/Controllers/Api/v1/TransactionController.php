@@ -96,16 +96,6 @@ class TransactionController extends Controller
     }
 
     /**
-     * PATCH /api/v1/transactions/{transaction}/destination
-     */
-    public function updateDestination(UpdateTransactionDestinationRequest $request, string $transactionId): TransactionResource
-    {
-        return new TransactionResource(
-            $this->transactionService->updateDestination($transactionId, $request->validated())
-        );
-    }
-
-    /**
      * DELETE /api/v1/transactions/{transaction}
      */
     public function destroy(string $transactionId): JsonResponse

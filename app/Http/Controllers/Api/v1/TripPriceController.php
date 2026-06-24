@@ -62,4 +62,10 @@ class TripPriceController extends Controller
         $data = $this->tripPriceService->listTripPriceSubDistricts($request->only('search', 'customer_id', 'origin_sub_district_id'));
         return response()->json($data);
     }
+
+    public function listTripWeightCategorySubDistricts(Request $request): JsonResponse
+    {
+        $data = $this->tripPriceService->listTripPriceSubDistrictsCategory($request->only('search', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id'));
+        return response()->json($data);
+    }
 }
