@@ -56,7 +56,7 @@ class TripPriceRepository
                 fn ($q) => $q->withTrashed()
             )
             ->orderBy('trip_prices.base_price')
-            ->select('id', 'base_price', 'created_at', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id', 'weight_category')
+            ->select('id', 'base_price', 'created_at', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id', 'weight_category', 'base_price_factory')
             ->paginate($perPage)
             ->withQueryString(); // keeps filters in pagination links
     }

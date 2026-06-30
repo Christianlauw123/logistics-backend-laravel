@@ -15,12 +15,8 @@ class UpdateTransactionDetailStatusRequest extends FormRequest
 
     public function rules(): array
     {
-        if (request()->user()->role->name !== 'Super Admin')
-            return [
-                'status' => ['required', Rule::in(array_column(TransactionDetailStatus::cases(),'value'))],
-            ];
-
         return [
+            'status' => ['required', Rule::in(array_column(TransactionDetailStatus::cases(),'value'))],
         ];
     }
 

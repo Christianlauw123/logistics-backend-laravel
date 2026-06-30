@@ -56,7 +56,7 @@ class TransactionDetailService
             $transactionDetail = $this->transactionDetailRepository->create($transactionDetailData);
 
             $chosenNumber = null;
-            $activeNumbers = TransactionDetail::whereIn('status', TransactionDetailStatus::requestedDefaults())->pluck('amount_unique_number')->toArray();
+            $activeNumbers = TransactionDetail::whereIn('status', TransactionDetailStatus::requestedNumberInUseDefaults())->pluck('amount_unique_number')->toArray();
             $allAllowedNumbers = range(1, 9);
             $remainingNumbers = collect($allAllowedNumbers)->diff($activeNumbers);
 
@@ -122,7 +122,7 @@ class TransactionDetailService
 
             // If file exists, re-upload the file, delete the old one
             if (!empty($data['file'])){
-                if($transactionDetail->attachment->file_id)
+                if($transactionDetail->attachment?->file_id)
                     $this->googleDriveService->delete($transactionDetail->attachment->file_id);
                 $this->attachmentService->create(['file' => $data['file'], 'transaction_detail_id' => $transactionDetail->id]);
             }

@@ -21,6 +21,7 @@ class UpdateTripPriceRequest extends FormRequest
             ],
             'base_price' => ['sometimes', 'numeric', 'min:0'],
             'weight_category' => ['sometimes', 'numeric', 'min:0'],
+            'base_price_factory' => ['sometimes', 'numeric', 'min:0'],
         ];
     }
 
@@ -31,6 +32,8 @@ class UpdateTripPriceRequest extends FormRequest
             'base_price.min' => 'Harga dasar harus bernilai positif',
             'weight_category.numeric' => 'Kategori harus berupa angka',
             'weight_category.min' => 'Kategori harus bernilai positif',
+            'base_price_factory.numeric' => 'Harga Dasar Pabrik harus berupa angka',
+            'base_price_factory.min' => 'Harga Dasar Pabrik harus bernilai positif',
             'customer_id.uuid' => 'Pelanggan tidak valid',
             'customer_id.exists' => 'Pelanggan tidak ditemukan',
             'origin_sub_district_id.uuid' => 'Kecamatan asal tidak valid',

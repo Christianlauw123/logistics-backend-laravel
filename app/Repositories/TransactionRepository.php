@@ -27,6 +27,7 @@ class TransactionRepository
         */
         $sortBy        = in_array($sort['sort_by'] ?? '', self::SORTABLE) ? $sort['sort_by'] : 'created_at';
         $sortDirection = ($sort['sort_dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+        $status = !empty($filters['status']) ? $filters['status'] : ['SUBMITTED', 'APPROVED'];
 
         return Transaction::query()
             ->with([
@@ -37,10 +38,7 @@ class TransactionRepository
                 'vehicle',
             ])
             // exact filters
-            ->when(
-                ! empty($filters['status']),
-                fn ($q) => $q->where('status', $filters['status'])
-            )
+            ->whereIn('status', $status)
             ->when(
                 ! empty($filters['customer_id']),
                 fn ($q) => $q->where('customer_id', $filters['customer_id'])
@@ -160,6 +158,7 @@ class TransactionRepository
         $transaction->customer_name = $transaction->customer->name;
         $transaction->driver_name = $transaction->driver->name;
         $transaction->weight_category = $transaction->tripPrice->weight_category;
+        $transaction->base_price_factory = $transaction->tripPrice->base_price_factory;
         $transaction->save();
     }
 
@@ -176,6 +175,7 @@ class TransactionRepository
         $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->destinationSubDistrict);
         // $transaction->revision_trip_price_id = $transaction->trip_price_id;
         $transaction->revision_weight_category = $transaction->tripPrice->weight_category;
+        $transaction->revision_base_price_factory = $transaction->tripPrice->base_price_factory;
         $transaction->save();
     }
 
@@ -187,6 +187,7 @@ class TransactionRepository
         $this->prePopulateTransaction($transaction);
         $transaction->revision_trip_price_amount = $transaction->revisionTripPrice->base_price;
         $transaction->revision_weight_category = $transaction->revisionTripPrice->weight_category;
+        $transaction->revision_base_price_factory = $transaction->revisionTripPrice->base_price_factory;
         $transaction->revision_destination_district = $transaction->getDistrictLabelAttribute($transaction->revisionDestinationSubDistrict);
         $transaction->save();
     }
@@ -206,7 +207,8 @@ class TransactionRepository
             'state' => $state,
             'trip_price_amount' => $transaction->revision_trip_price_amount,
             'current_total_approved' => $transactionDetails->whereIn('status', TransactionDetailStatus::approvedDefaults())->sum('amount'),
-            'current_total' => $total
+            'current_total' => $total,
+            'current_total_discrepancy' => $transaction->revision_trip_price_amount - $transactionDetails->whereIn('status', TransactionDetailStatus::approvedDefaults())->sum('amount')
         ];
     }
 
