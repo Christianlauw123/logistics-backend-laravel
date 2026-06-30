@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\TransactionDetails\TransactionDetailDefaultItem;
 use App\Enums\TransactionDetails\TransactionDetailStatus;
 use App\Enums\Transactions\TransactionStatus;
+use App\Jobs\CustomExportTransactionsJob;
 use App\Jobs\ExportTransactionsJob;
 use App\Models\Transaction;
 use App\Repositories\TransactionDetailRepository;
@@ -214,6 +215,22 @@ class TransactionService
 
         // Dispatch the export job to the queue
         ExportTransactionsJob::dispatch($filters, $sort, $filePath, $jobId)->onQueue('exports-transactions'); // Use a dedicated queue
+
+        return response()->json([
+            'success' => true,
+            'job_id' => $jobId,
+            'message' => 'Export job queued. Check status with this job ID.',
+        ], 202); // 202 Accepted
+    }
+
+    public function simpleExport(array $filters, array $sort): JsonResponse
+    {
+        // Create unique job ID
+        $jobId = uniqid('export_transactions', true);
+        $filePath = "exports/transactions/{$jobId}.xlsx";
+
+        // Dispatch the export job to the queue
+        CustomExportTransactionsJob::dispatch($filters, $sort, $filePath, $jobId)->onQueue('exports-transactions'); // Use a dedicated queue
 
         return response()->json([
             'success' => true,

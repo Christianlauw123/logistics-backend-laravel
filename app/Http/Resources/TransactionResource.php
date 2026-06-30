@@ -50,8 +50,11 @@ class TransactionResource extends JsonResource
             'revision_trip_price_id'    => $this->revision_trip_price_id,
             'weight_category'           => $this->weight_category,
             'revision_weight_category'  => $this->revision_weight_category,
+            'base_price_factory'       => $this->base_price_factory,
+            'revision_base_price_factory'  => $this->revision_base_price_factory,
             'current_total'             => $this->calculations['current_total'] ?? 0, // Custom Fields
             'current_total_approved'    => $this->calculations['current_total_approved'] ?? 0, // Custom Fields
+            'current_total_discrepancy' => $this->calculations['current_total_discrepancy'] ?? 0, // Custom Fields
             // Conditional: only load if relation is already loaded
             // Prevents N+1 — never loads relation just for the resource
             'user' => $this->whenLoaded('user', fn () => [

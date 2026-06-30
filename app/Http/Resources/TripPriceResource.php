@@ -16,7 +16,7 @@ class TripPriceResource extends JsonResource
             'updated_at'    => $this->updated_at,
             'deleted_at'    => $this->deleted_at,
             'weight_category' => $this->weight_category,
-
+            'base_price_factory' => $this->base_price_factory,
             'origin'      => $this->whenLoaded('originSubDistrict', fn ($d) => [
                 'id'        => $this->originSubDistrict->id,
                 'name'      => $this->originSubDistrict->name,

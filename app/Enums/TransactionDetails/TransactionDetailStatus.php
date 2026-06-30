@@ -27,6 +27,14 @@ enum TransactionDetailStatus: string {
         ];
     }
 
+    // Goal: Get Transaction Detail that uniqueNumber inUse
+    public static function requestedNumberInUseDefaults(): array{
+        return [
+            self::SUBMITTED,
+            self::APPROVED,
+        ];
+    }
+
     public function canTransitionTo(self $target): bool
     {
         return match ($this) {

@@ -27,7 +27,8 @@ class UpdateTransactionRequest extends FormRequest
             'origin_sub_district_id'=> ['sometimes', 'uuid', 'exists:sub_districts,id'],
             'dest_sub_district_id'  => ['sometimes', 'uuid', 'exists:sub_districts,id'],
             'driver_id'             => ['sometimes', 'uuid', 'exists:drivers,id'],
-            'note'                  => ['sometimes', 'string'],
+            'weight_category'       => ['sometimes', 'numeric', 'min:0'],
+            'note'                  => ['nullable', 'string'],
         ];
     }
 

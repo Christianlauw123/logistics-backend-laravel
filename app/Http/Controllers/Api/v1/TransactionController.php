@@ -124,6 +124,26 @@ class TransactionController extends Controller
         return $this->transactionService->export($filters, $sort);
     }
 
+    public function simpleExport(Request $request): JsonResponse
+    {
+        $filters = $request->only([
+            'search',
+            'customer_id',
+            'date_start',
+            'date_end',
+            'status',
+            'filter_date_key',
+            'vehicle_id',
+        ]);
+
+        $sort = [
+            'sort_by' => $request->query('sort_by', 'created_at'),
+            'sort_dir' => $request->query('sort_dir', 'desc'),
+        ];
+
+        return $this->transactionService->simpleExport($filters, $sort);
+    }
+
     public function checkStatus(string $jobId): JsonResponse
     {
         return $this->transactionService->checkStatus($jobId);

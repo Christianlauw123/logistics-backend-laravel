@@ -21,6 +21,7 @@ class StoreTripPriceRequest extends FormRequest
             ],
             'base_price' => ['required', 'numeric', 'min:0'],
             'weight_category' => ['required', 'numeric', 'min:0'],
+            'base_price_factory' => ['required', 'numeric', 'min:0'],
         ];
     }
 
@@ -33,6 +34,9 @@ class StoreTripPriceRequest extends FormRequest
             'weight_category.required' => 'Kategori harus diisi',
             'weight_category.numeric' => 'Kategori harus berupa angka',
             'weight_category.min' => 'Kategori harus bernilai positif',
+            'base_price_factory.required' => 'Harga Dasar Pabrik harus diisi',
+            'base_price_factory.numeric' => 'Harga Dasar Pabrik harus berupa angka',
+            'base_price_factory.min' => 'Harga Dasar Pabrik harus bernilai positif',
             'customer_id.required' => 'Pelanggan harus diisi',
             'customer_id.uuid' => 'Pelanggan tidak valid',
             'customer_id.exists' => 'Pelanggan tidak ditemukan',

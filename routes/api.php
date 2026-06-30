@@ -42,6 +42,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // Export Transaction
     Route::post('/transactions/export', [TransactionController::class, 'export'])->name('transactions.v1.export');
+    Route::post('/transactions/simple_export', [TransactionController::class, 'simpleExport'])->name('transactions.v1.simpleExport');
     Route::get('/transactions/export-status/{jobId}', [TransactionController::class, 'checkStatus'])->name('transactions.v1.export_status');
     Route::get('/transactions/download-export/{jobId}', [TransactionController::class, 'downloadExport'])->name('transactions.v1.download_export');
 
