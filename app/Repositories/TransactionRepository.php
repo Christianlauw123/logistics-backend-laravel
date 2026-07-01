@@ -27,7 +27,7 @@ class TransactionRepository
         */
         $sortBy        = in_array($sort['sort_by'] ?? '', self::SORTABLE) ? $sort['sort_by'] : 'created_at';
         $sortDirection = ($sort['sort_dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
-        $status = !empty($filters['status']) ? $filters['status'] : ['SUBMITTED', 'APPROVED'];
+        $status = !empty($filters['status']) ? (array)$filters['status'] : ['SUBMITTED', 'APPROVED'];
 
         return Transaction::query()
             ->with([

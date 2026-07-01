@@ -12,6 +12,7 @@ class StoreDriverRequest extends FormRequest
     {
         return [
             'name'     => ['required', 'string', 'max:100', 'unique:drivers,name'],
+            'is_active' => ['nullable','boolean'],
 
         ];
     }

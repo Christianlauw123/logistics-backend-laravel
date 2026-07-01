@@ -29,8 +29,12 @@ class DriverRepository
                 isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
             )
+            ->when(
+                isset($filters['is_active']),
+                fn ($q) => $q->where('is_active', $filters['is_active'])
+            )
             ->orderBy('name')
-            ->select('id', 'name', 'created_at')
+            ->select('id', 'name', 'created_at', 'is_active')
             ->paginate($perPage)
             ->withQueryString(); // keeps filters in pagination links
     }
