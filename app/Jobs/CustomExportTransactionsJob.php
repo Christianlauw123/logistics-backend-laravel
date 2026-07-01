@@ -57,7 +57,7 @@ class CustomExportTransactionsJob implements ShouldQueue
                     $purpose = strtolower(trim($detail->purpose));
 
                     // Skip if empty or if it falls into one of our three smart static columns
-                    if (empty($purpose) || str_contains($purpose, 'ujp') || $purpose === 'tabungan') {
+                    if (empty($purpose) || str_contains($purpose, 'ujp') || str_contains($purpose, 'tabungan')) {
                         continue;
                     }
 
@@ -71,12 +71,14 @@ class CustomExportTransactionsJob implements ShouldQueue
 
             // 3. Define Final Sheet Headers
             $staticHeaders = [
-                'Tanggal DO Dibuat',
+                'No',
+                'Tanggal',
                 'Pelanggan',
                 'Supir',
                 'Plat Kendaraan',
                 'Tujuan Revisi',
                 'Total UJP',    // Smart Static Column 1 (Sums details containing 'UJP')
+                'Total UJP di transfer',    // Smart Static Column 1 (Sums details containing 'UJP')
                 'Harga Pabrik', // Smart Static Column 2 (Sums details equaling 'HARGA PABRIK')
                 'Tabungan',     // Smart Static Column 3 (Sums details equaling 'TABUNGAN')
             ];
@@ -106,7 +108,6 @@ class CustomExportTransactionsJob implements ShouldQueue
             foreach ($transactions as $transaction) {
                 // Initialize clean arithmetic math buckets for the smart static columns per row
                 $totalUjp = 0;
-                $hargaPabrik = $transaction->revision_base_price_factory;
                 $tabungan = 0;
 
                 // Key-value array tracking the extra dynamic columns specifically for this transaction row
@@ -123,7 +124,7 @@ class CustomExportTransactionsJob implements ShouldQueue
                     if ($isDone) {
                         if (str_contains($purpose, 'ujp')) {
                             $totalUjp += $amount;
-                        } elseif ($purpose === 'tabungan') {
+                        } elseif (str_contains($purpose, 'tabungan')) {
                             $tabungan += $amount;
                         } else {
                             // Map everything else into its own specific dynamic category slot
@@ -133,17 +134,19 @@ class CustomExportTransactionsJob implements ShouldQueue
                 }
 
                 // Write core transaction dataset and our smart static columns (Columns A through H)
-                $sheet->setCellValue('A' . $row, $transaction->do_date);
-                $sheet->setCellValue('B' . $row, $transaction->customer_name ?? '-');
-                $sheet->setCellValue('C' . $row, $transaction->driver_name ?? '-');
-                $sheet->setCellValue('D' . $row, $transaction->vehicle_plate ?? '-');
-                $sheet->setCellValue('E' . $row, $transaction->revision_destination_district ?? '-');
-                $sheet->setCellValue('F' . $row, $totalUjp);
-                $sheet->setCellValue('G' . $row, $hargaPabrik);
-                $sheet->setCellValue('H' . $row, $tabungan);
+                $sheet->setCellValue('A' . $row, $row-1);
+                $sheet->setCellValue('B' . $row, $transaction->do_date);
+                $sheet->setCellValue('C' . $row, $transaction->customer_name ?? '-');
+                $sheet->setCellValue('D' . $row, $transaction->driver_name ?? '-');
+                $sheet->setCellValue('E' . $row, $transaction->vehicle_plate ?? '-');
+                $sheet->setCellValue('F' . $row, $transaction->revision_destination_district ?? '-');
+                $sheet->setCellValue('G' . $row, $transaction->revision_trip_price_amount ?? 0);
+                $sheet->setCellValue('H' . $row, $totalUjp);
+                $sheet->setCellValue('I' . $row, $transaction->revision_base_price_factory ?? 0);
+                $sheet->setCellValue('J' . $row, $tabungan);
 
-                // Write dynamically mapped detail columns starting right after column H (Index 9 / Column I)
-                $columnIndex = 9;
+                // Write dynamically mapped detail columns starting right after column J (Index 11 / Column J)
+                $columnIndex = 11;
                 foreach ($dynamicPurposes as $headerPurpose) {
                     $cellValue = $dynamicRowAmounts[$headerPurpose] ?? 0; // Default to 0 if transaction lacks this category
 
@@ -167,7 +170,7 @@ class CustomExportTransactionsJob implements ShouldQueue
             // 6. Number formatting and layout layout widths cleanups
             // Apply numeric thousands separator pattern over all calculation columns (F to the rightmost cell)
             if ($row > 2) {
-                $sheet->getStyle("F2:{$highestColumn}" . ($row - 1))
+                $sheet->getStyle("G2:{$highestColumn}" . ($row - 1))
                     ->getNumberFormat()
                     ->setFormatCode('#,##0');
             }

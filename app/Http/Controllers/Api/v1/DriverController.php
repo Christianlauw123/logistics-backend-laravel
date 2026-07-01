@@ -25,7 +25,7 @@ class DriverController extends Controller
             deleted - boolean true / false
         */
         $perPage = (int) ($request->query('per_page', 15) ?? 15);
-        $data = $this->driverService->list($request->only(['search', 'deleted', 'id']), $perPage);
+        $data = $this->driverService->list($request->only(['search', 'deleted', 'id', 'is_active']), $perPage);
         return response()->json($data);
     }
 

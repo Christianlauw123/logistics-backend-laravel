@@ -34,7 +34,7 @@ class VehicleRepository
             )
             ->when(
                 isset($filters['is_active']),
-                fn ($q) => $q->where('vehicles.is_active', $filters['is_active'] === 'true' ? true : false)
+                fn ($q) => $q->where('vehicles.is_active', $filters['is_active'])
             )
             ->orderBy('vehicles.plate_number')
             ->paginate($perPage)

@@ -13,7 +13,8 @@ class UpdateDriverRequest extends FormRequest
         $driverId = $this->route('driver');
 
         return [
-            'name'     => ['required', 'string', 'max:100', "unique:drivers,name,{$driverId}"]
+            'name'     => ['required', 'string', 'max:100', "unique:drivers,name,{$driverId}"],
+            'is_active' => ['nullable','boolean'],
         ];
     }
     public function messages(): array
