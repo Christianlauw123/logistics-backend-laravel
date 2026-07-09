@@ -42,7 +42,7 @@ return new class extends Migration
 
             $table->text('note')->nullable();
 
-            // 'SUBMITTED', 'APPROVED', 'DONE', 'CANCELLED', 'REJECTED', 'CANCELLED NO REFUND', 'CANCELLED AND REFUND', 'DONE AND WAITING_DOCUMENT'
+            // 'SUBMITTED', 'DONE', 'CANCELLED', 'REJECTED', 'CANCELLED NO REFUND', 'CANCELLED AND REFUND', 'DONE AND WAITING_DOCUMENT'
             $table->text('status')->nullable();
 
             $table->foreignUuid('user_id')
