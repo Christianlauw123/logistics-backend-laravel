@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\BankAccount;
 use App\Repositories\BankAccountRepository;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Throwable;

@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Customer;
 use App\Repositories\CustomerRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Validation\ValidationException;
 
 class CustomerService
 {

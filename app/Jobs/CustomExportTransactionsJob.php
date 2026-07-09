@@ -73,10 +73,10 @@ class CustomExportTransactionsJob implements ShouldQueue
             $staticHeaders = [
                 'No',
                 'Tanggal',
-                'Pelanggan',
+                'Customer',
+                'Tujuan',
+                'Nopol',
                 'Supir',
-                'Plat Kendaraan',
-                'Tujuan Revisi',
                 'Total UJP',    // Smart Static Column 1 (Sums details containing 'UJP')
                 'Total UJP di transfer',    // Smart Static Column 1 (Sums details containing 'UJP')
                 'Harga Pabrik', // Smart Static Column 2 (Sums details equaling 'HARGA PABRIK')
@@ -137,9 +137,9 @@ class CustomExportTransactionsJob implements ShouldQueue
                 $sheet->setCellValue('A' . $row, $row-1);
                 $sheet->setCellValue('B' . $row, $transaction->do_date);
                 $sheet->setCellValue('C' . $row, $transaction->customer_name ?? '-');
-                $sheet->setCellValue('D' . $row, $transaction->driver_name ?? '-');
+                $sheet->setCellValue('D' . $row, $transaction->revision_destination_district ?? '-');
                 $sheet->setCellValue('E' . $row, $transaction->vehicle_plate ?? '-');
-                $sheet->setCellValue('F' . $row, $transaction->revision_destination_district ?? '-');
+                $sheet->setCellValue('F' . $row, $transaction->driver_name ?? '-');
                 $sheet->setCellValue('G' . $row, $transaction->revision_trip_price_amount ?? 0);
                 $sheet->setCellValue('H' . $row, $totalUjp);
                 $sheet->setCellValue('I' . $row, $transaction->revision_base_price_factory ?? 0);
@@ -166,6 +166,31 @@ class CustomExportTransactionsJob implements ShouldQueue
 
                 $row++;
             }
+
+            // Set Total Summary
+            $sheet->setCellValue('A' . $row, 'TOTAL');
+            foreach (range(7, Coordinate::columnIndexFromString($highestColumn)) as $columnIndex) {
+                $columnLetter = Coordinate::stringFromColumnIndex($columnIndex);
+
+                $sheet->setCellValue(
+                    $columnLetter . $row,
+                    "=SUM({$columnLetter}2:{$columnLetter}" . ($row - 1) . ")"
+                );
+                $sheet->getStyle($columnLetter . $row)
+                    ->getNumberFormat()
+                    ->setFormatCode('#,##0');
+            }
+
+            // // Style the total row
+            $sheet->getStyle("A{$row}:{$highestColumn}{$row}")
+                ->getFont()
+                ->setBold(true);
+
+            $sheet->getStyle("A{$row}:{$highestColumn}{$row}")
+                ->getFill()
+                ->setFillType(Fill::FILL_SOLID)
+                ->getStartColor()
+                ->setARGB('FFD9EAD3');
 
             // 6. Number formatting and layout layout widths cleanups
             // Apply numeric thousands separator pattern over all calculation columns (F to the rightmost cell)

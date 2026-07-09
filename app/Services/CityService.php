@@ -4,9 +4,7 @@ namespace App\Services;
 
 use App\Models\City;
 use App\Repositories\CityRepository;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Validation\ValidationException;
 
 class CityService
 {

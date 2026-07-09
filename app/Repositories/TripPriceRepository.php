@@ -55,7 +55,8 @@ class TripPriceRepository
                 isset($filters['deleted']) && $filters['deleted']==true,
                 fn ($q) => $q->withTrashed()
             )
-            ->orderBy('trip_prices.base_price')
+            ->orderBy('trip_prices.customer_id')
+            ->orderBy('trip_prices.weight_category', 'asc')
             ->select('id', 'base_price', 'created_at', 'customer_id', 'origin_sub_district_id', 'dest_sub_district_id', 'weight_category', 'base_price_factory')
             ->paginate($perPage)
             ->withQueryString(); // keeps filters in pagination links

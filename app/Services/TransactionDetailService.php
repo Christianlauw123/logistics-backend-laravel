@@ -35,7 +35,7 @@ class TransactionDetailService
             // Prevent Update Detail if Parent not in
             if(!in_array($transaction->status, TransactionStatus::allowUpdates(), true)){
                 throw ValidationException::withMessages([
-                    'amount' => 'Status bukan SUBMITTED / APPROVED',
+                    'amount' => 'Status bukan SUBMITTED',
                 ]);
             }
 
@@ -48,7 +48,7 @@ class TransactionDetailService
                 $detailCreationAllowed = $this->transactionRepository->preCalculateCurrentTransactionTotal($transactionDetailData['transaction_id'], $transactionDetailData['amount']);
                 if(!$detailCreationAllowed['state']){
                     throw ValidationException::withMessages([
-                        'amount' => 'Jumlah Amount Baru melebihi biaya trip maksimal '.$detailCreationAllowed['trip_price_amount'],
+                        'amount' => 'Jumlah nominal Baru maksimal '.$detailCreationAllowed['current_total_discrepancy'],
                     ]);
                 }
             }
@@ -97,23 +97,25 @@ class TransactionDetailService
             $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
 
             // Business rule: only SUBMITTED transactions can be edited
-            if ($transactionDetail->status !== TransactionDetailStatus::SUBMITTED) {
-                throw ValidationException::withMessages([
-                    'status' => 'Hanya SUBMITTED detail yang dapat dirubah',
-                ]);
-            }
+            if (request()->user()->role->name !== 'Super Admin'){
+                if ($transactionDetail->status !== TransactionDetailStatus::SUBMITTED) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Hanya SUBMITTED detail yang dapat dirubah',
+                    ]);
+                }
 
-            if(!in_array($transactionDetail->transaction->status, TransactionStatus::allowUpdates(), true)){
-                throw ValidationException::withMessages([
-                    'amount' => 'Status Transaksi bukan SUBMITTED / APPROVED',
-                ]);
+                if(!in_array($transactionDetail->transaction->status, TransactionStatus::allowUpdates(), true)){
+                    throw ValidationException::withMessages([
+                        'amount' => 'Status Transaksi bukan SUBMITTED',
+                    ]);
+                }
             }
 
 
             $detailCreationAllowed = $this->transactionRepository->preCalculateCurrentTransactionTotal($transactionDetail->transaction->id, -$transactionDetail->amount + $data['amount']);
             if(!$detailCreationAllowed['state']){
                 throw ValidationException::withMessages([
-                    'amount' => 'Jumlah Amount Baru melebihi biaya trip maksimal '.$detailCreationAllowed['trip_price_amount'],
+                    'amount' => 'Jumlah nominal Baru maksimal '.$detailCreationAllowed['current_total_discrepancy'],
                 ]);
             }
 
@@ -148,13 +150,13 @@ class TransactionDetailService
                 ]);
             }
 
-            if(!in_array($transactionDetail->transaction->status, TransactionStatus::allowUpdates(), true)){
-                throw ValidationException::withMessages([
-                    'amount' => 'Status Transaksi bukan SUBMITTED / APPROVED',
-                ]);
-            }
-
             if (request()->user()->role->name !== 'Super Admin'){
+                if(!in_array($transactionDetail->transaction->status, TransactionStatus::allowUpdates(), true)){
+                    throw ValidationException::withMessages([
+                        'amount' => 'Status Transaksi bukan SUBMITTED',
+                    ]);
+                }
+
                 if (! $transactionDetail->status->canTransitionTo($newStatus)) {
                     throw ValidationException::withMessages([
                         'status' => "Gagal Update dari {$transactionDetail->status} ke {$newStatus}.",
@@ -164,11 +166,29 @@ class TransactionDetailService
 
             $transactionDetail = $this->transactionDetailRepository->updateStatus($transactionDetail, $status);
 
+            // Set First Payment Date on Transaciton as DO Date
+            if ($transactionDetail->status === TransactionDetailStatus::DONE && !$transactionDetail->transaction->is_set_first_payment_date) {
+                $this->transactionRepository->setFirstPaymentDate($transactionDetail->transaction, $transactionDetail->created_at);
+            }
+
+            // Check the end of transaction if all ujp is filled, then go to the done_waiting document
+            $transactionState = $this->transactionRepository->getCurrentTotal($transactionDetail->transaction_id);
+
+            $status = TransactionStatus::DONE_AND_WAITING_DOCUMENT->value;
+            if($transactionState['total'] < $transactionState['trip_price_amount']){
+                $status = TransactionStatus::SUBMITTED->value;
+            }
+
+            $this->transactionRepository->updateStatus($transactionDetail->transaction, $status);
+
+
             DB::commit();
             return $transactionDetail->refresh();
         }catch(Throwable $e){
             DB::rollBack();
-            throw $e;
+            throw ValidationException::withMessages([
+                'status' => "Gagal update status",
+            ]);
         }
     }
 
@@ -179,12 +199,14 @@ class TransactionDetailService
             $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($id);
             $this->preventClaimTabunganModified('delete', $transactionDetail->purpose);
 
-            if ($transactionDetail->status !== TransactionDetailStatus::SUBMITTED) {
-                throw ValidationException::withMessages([
-                    'status' => 'Hanya SUBMITTED detail yang dapat dihapus',
-                ]);
+            if (request()->user()->role->name !== 'Super Admin'){
+                if ($transactionDetail->status !== TransactionDetailStatus::SUBMITTED) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Hanya SUBMITTED detail yang dapat dihapus',
+                    ]);
+                }
             }
-            if($transactionDetail->attachment->file_id)
+            if($transactionDetail->attachment?->file_id)
                 $this->googleDriveService->delete($transactionDetail->attachment->file_id);
 
             $this->transactionDetailRepository->delete($transactionDetail);

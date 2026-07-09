@@ -69,7 +69,7 @@ class TransactionService
 
             // Add Driver Commission + Claim
             foreach (array_column(TransactionDetailDefaultItem::cases(), 'value') as $value) {
-                $this->transactionDetailRepository->create(['purpose' => $value, 'amount' => 0, 'transaction_id' => $transaction->id, 'status' => TransactionDetailStatus::SUBMITTED]);
+                $this->transactionDetailRepository->create(['purpose' => $value, 'amount' => 0, 'transaction_id' => $transaction->id, 'status' => TransactionDetailStatus::DONE]);
             }
 
             // Create Drive Folder

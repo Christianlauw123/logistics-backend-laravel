@@ -27,7 +27,7 @@ class TransactionRepository
         */
         $sortBy        = in_array($sort['sort_by'] ?? '', self::SORTABLE) ? $sort['sort_by'] : 'created_at';
         $sortDirection = ($sort['sort_dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
-        $status = !empty($filters['status']) ? (array)$filters['status'] : ['SUBMITTED', 'APPROVED'];
+        $status = !empty($filters['status']) ? (array)$filters['status'] : ['SUBMITTED'];
 
         return Transaction::query()
             ->with([
@@ -35,7 +35,13 @@ class TransactionRepository
                 'originSubDistrict',
                 'destinationSubDistrict',
                 'bankAccount',
+                'transactionDetails',
                 'vehicle',
+            ])
+            ->withCount([
+                'transactionDetails as details_remaining_count' => function ($query) {
+                    $query->whereIn('status', [TransactionDetailStatus::SUBMITTED, TransactionDetailStatus::APPROVED]); // Ganti 'x' dengan nilai status Anda
+                },
             ])
             // exact filters
             ->whereIn('status', $status)
@@ -206,9 +212,9 @@ class TransactionRepository
         return [
             'state' => $state,
             'trip_price_amount' => $transaction->revision_trip_price_amount,
-            'current_total_approved' => $transactionDetails->whereIn('status', TransactionDetailStatus::approvedDefaults())->sum('amount'),
+            'current_total_approved' => $transactionDetails->whereIn('status', TransactionDetailStatus::approvedDefaults())->where('is_special_case',false)->sum('amount'),
             'current_total' => $total,
-            'current_total_discrepancy' => $transaction->revision_trip_price_amount - $transactionDetails->whereIn('status', TransactionDetailStatus::approvedDefaults())->sum('amount')
+            'current_total_discrepancy' => $transaction->revision_trip_price_amount - $transactionDetails->whereIn('status', TransactionDetailStatus::approvedDefaults())->where('is_special_case',false)->sum('amount')
         ];
     }
 
@@ -290,6 +296,26 @@ class TransactionRepository
             )
             ->orderBy($sortBy, $sortDirection)
             ->get();
+    }
+
+    public function getCurrentTotal(string $transactionId): array {
+        $transaction = $this->findByIdOrFail($transactionId)->refresh();
+        $transactionDetails = $transaction->transactionDetails;
+        // Only check the one that not special case for the limit
+        $total = $transactionDetails ? $transactionDetails->whereIn('status', TransactionDetailStatus::requestedDefaults())->where('is_special_case',false)->sum('amount') : 0;
+
+        return [
+            'total' => $total,
+            'trip_price_amount' => $transaction->revision_trip_price_amount
+        ];
+    }
+
+    public function setFirstPaymentDate(Transaction $transaction, string $paymentDate): void {
+        if (!$transaction->is_set_first_payment_date) {
+            $transaction->do_date = $paymentDate;
+            $transaction->is_set_first_payment_date = true;
+            $transaction->save();
+        }
     }
 }
 
