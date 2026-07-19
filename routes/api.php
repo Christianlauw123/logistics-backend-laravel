@@ -64,5 +64,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login'])->name('auth.v1.login');
+    Route::patch('transaction_details/{transaction_detail}/update-detail-based-on-outsider', [TransactionDetailController::class, 'updateDetailBasedOnOutsider'])->name('transaction_details.v1.update_detail_based_on_outsider')->whereUuid('transaction_detail')->middleware('outsider.auth');
 });
 

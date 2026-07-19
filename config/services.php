@@ -42,6 +42,13 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'refresh_token' => env('GOOGLE_REFRESH_TOKEN')
-    ]
-
+    ],
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'chat_id' => env('TELEGRAM_CHAT_ID'),
+        'outsider_api_key' => env('OUTSIDER_API_KEY'),
+    ],
+    'outsider' => [
+        'api_token' => env('OUTSIDER_API_KEY'),
+    ],
 ];

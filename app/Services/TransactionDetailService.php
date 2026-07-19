@@ -8,7 +8,9 @@ use App\Models\TransactionDetail;
 use App\Repositories\TransactionDetailRepository;
 use App\Repositories\TransactionRepository;
 use App\Services\ExternalServices\GoogleDriveService;
+use App\Services\ExternalServices\TelegramService;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -20,6 +22,7 @@ class TransactionDetailService
         private readonly TransactionRepository $transactionRepository,
         private readonly GoogleDriveService $googleDriveService,
         private readonly AttachmentService $attachmentService,
+        private readonly TelegramService $telegramService
     ) {}
 
     public function findOrFail(string $id): TransactionDetail
@@ -55,6 +58,8 @@ class TransactionDetailService
 
             $transactionDetail = $this->transactionDetailRepository->create($transactionDetailData);
 
+            $transactionDetail->refresh();
+
             $chosenNumber = null;
             $activeNumbers = TransactionDetail::whereIn('status', TransactionDetailStatus::requestedNumberInUseDefaults())->pluck('amount_unique_number')->toArray();
             $allAllowedNumbers = range(1, 9);
@@ -76,6 +81,7 @@ class TransactionDetailService
                         'amount_unique_number' => 'Tidak dapat create detail, uniq number full',
                     ]);
                 }
+                throw $e;
             }
 
             // Upload the file
@@ -83,6 +89,10 @@ class TransactionDetailService
                 $this->attachmentService->create(['file' => $data['file'], 'transaction_detail_id' => $transactionDetail->id]);
 
             DB::commit();
+
+            // Send Pengajuan ke Telegram Bot
+            $this->telegramService->telegramSendRequestDetail($transactionDetail->id);
+
             return $transactionDetail->refresh();
         }catch(Throwable $e){
             DB::rollBack();
@@ -128,6 +138,9 @@ class TransactionDetailService
                     $this->googleDriveService->delete($transactionDetail->attachment->file_id);
                 $this->attachmentService->create(['file' => $data['file'], 'transaction_detail_id' => $transactionDetail->id]);
             }
+
+            $this->updateTransactionStatusIfAllDetailsDone($transactionDetail->id);
+
             DB::commit();
             return $transactionDetail->refresh();
         }catch(Throwable $e){
@@ -165,22 +178,8 @@ class TransactionDetailService
             }
 
             $transactionDetail = $this->transactionDetailRepository->updateStatus($transactionDetail, $status);
-
-            // Set First Payment Date on Transaciton as DO Date
-            if ($transactionDetail->status === TransactionDetailStatus::DONE && !$transactionDetail->transaction->is_set_first_payment_date) {
-                $this->transactionRepository->setFirstPaymentDate($transactionDetail->transaction, $transactionDetail->created_at);
-            }
-
-            // Check the end of transaction if all ujp is filled, then go to the done_waiting document
-            $transactionState = $this->transactionRepository->getCurrentTotal($transactionDetail->transaction_id);
-
-            $status = TransactionStatus::DONE_AND_WAITING_DOCUMENT->value;
-            if($transactionState['total'] < $transactionState['trip_price_amount']){
-                $status = TransactionStatus::SUBMITTED->value;
-            }
-
-            $this->transactionRepository->updateStatus($transactionDetail->transaction, $status);
-
+            $this->firstPaymentDateIsSet($transactionDetail->id);
+            $this->updateTransactionStatusIfAllDetailsDone($transactionDetail->id);
 
             DB::commit();
             return $transactionDetail->refresh();
@@ -218,6 +217,56 @@ class TransactionDetailService
     }
 
     // Custom Function
+    // Function for Updating the Transaction Detail Status to DONE, and also update the Transaction Status to DONE_AND_WAITING_DOCUMENT if all UJP is filled
+    public function updateDetailBasedOnOutsider(string $transactionDetailId, float $amount): JsonResponse
+    {
+        DB::beginTransaction();
+        try{
+            // Check if the transaction amount is -1, returning not found sent to telegram
+            $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($transactionDetailId);
+            if($transactionDetail->status !== TransactionDetailStatus::SUBMITTED){
+                $this->telegramService->telegramSendMessageFeedback(
+                    false,
+                    'Transaksi tidak ditemukan atau sudah diproses https://logistics-fe.n8n-learning.web.id/transactions/'.$transactionDetail->transaction->id,
+                    $transactionDetail->transaction->id
+                );
+                return response()->json([
+                    'id' => $transactionDetail->transaction->id,
+                    'success' => false,
+                    'message' => 'Transaksi tidak ditemukan atau sudah diproses https://logistics-fe.n8n-learning.web.id/transactions/'.$transactionDetail->transaction->id,
+                ], 400);
+            }
+            if ($amount !== ($transactionDetail->amount + ($transactionDetail->amount_unique_number ?? 0))) {
+                $this->telegramService->telegramSendMessageFeedback(
+                    false,
+                    "Transaksi dengan jumlah ".$amount." tidak ditemukan https://logistics-fe.n8n-learning.web.id/transactions/".$transactionDetail->transaction->id,
+                    $transactionDetail->transaction->id
+                );
+
+                return response()->json([
+                    'id' => $transactionDetail->id,
+                    'success' => false,
+                    'message' => 'Transaksi dengan jumlah '.$amount.' tidak ditemukan https://logistics-fe.n8n-learning.web.id/transactions/'.$transactionDetail->transaction->id,
+                ], 400);
+            }
+
+            $this->changeStatus($transactionDetailId, TransactionDetailStatus::DONE->value);
+            $this->firstPaymentDateIsSet($transactionDetail->id);
+            $this->updateTransactionStatusIfAllDetailsDone($transactionDetail->id);
+            DB::commit();
+            return response()->json([
+                'id' => $transactionDetail->id,
+                'success' => true,
+                'message' => 'Berhasil update status',
+            ], 200);
+
+        }catch(Throwable $e){
+            DB::rollBack();
+            throw $e;
+        }
+
+    }
+
     // Prevent claim & tabungan deleted or modified
     private function preventClaimTabunganModified(string $state, string $purpose): void{
         $purposeCheckFound = match(str($purpose)->trim()->lower()){
@@ -238,4 +287,31 @@ class TransactionDetailService
             ]);
         }
     }
+
+    private function updateTransactionStatusIfAllDetailsDone(string $transactionDetailId): void
+    {
+        $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($transactionDetailId);
+        // Check the end of transaction if all ujp is filled, then go to the done_waiting document
+        $transactionState = $this->transactionRepository->getCurrentTotal($transactionDetail->transaction_id);
+
+        $status = TransactionStatus::DONE_AND_WAITING_DOCUMENT->value;
+        if($transactionState['total'] < $transactionState['trip_price_amount']){
+            $status = TransactionStatus::SUBMITTED->value;
+        }
+
+        $this->transactionRepository->updateStatus($transactionDetail->transaction, $status);
+
+    }
+
+    private function firstPaymentDateIsSet(string $transactionDetailId): void
+    {
+        $transactionDetail = $this->transactionDetailRepository->findByIdOrFail($transactionDetailId);
+
+         // Set First Payment Date on Transaciton as DO Date
+        if ($transactionDetail->status === TransactionDetailStatus::DONE && !$transactionDetail->transaction->is_set_first_payment_date) {
+            $this->transactionRepository->setFirstPaymentDate($transactionDetail->transaction, $transactionDetail->created_at);
+        }
+    }
+
+
 }

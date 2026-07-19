@@ -161,6 +161,7 @@ class TransactionRepository
         $transaction->origin_district = $transaction->getDistrictLabelAttribute($transaction->originSubDistrict);
         $transaction->destination_district = $transaction->getDistrictLabelAttribute($transaction->destinationSubDistrict);
         $transaction->bank_account_num = $transaction->bankAccount->account_identifier_number;
+        $transaction->bank_account_num_full = $transaction->bankAccount->account_number;
         $transaction->customer_name = $transaction->customer->name;
         $transaction->driver_name = $transaction->driver->name;
         $transaction->weight_category = $transaction->tripPrice->weight_category;

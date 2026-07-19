@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\TransactionDetail\StoreTransactionDetailRequest;
+use App\Http\Requests\TransactionDetail\UpdateTransactionDetailExternalRequest;
 use App\Http\Requests\TransactionDetail\UpdateTransactionDetailRequest;
 use App\Http\Requests\TransactionDetail\UpdateTransactionDetailStatusRequest;
 use App\Http\Resources\TransactionDetailResource;
@@ -69,5 +70,13 @@ class TransactionDetailController extends Controller
         $this->transactionDetailService->delete($transaction);
 
         return response()->json(['message' => 'Transaction deleted.']);
+    }
+
+    // Telegram Outsider API Endpoint
+    public function updateDetailBasedOnOutsider(UpdateTransactionDetailExternalRequest $request, string $transactionDetailId): TransactionDetailResource
+    {
+        return new TransactionDetailResource(
+            $this->transactionDetailService->updateDetailBasedOnOutsider($transactionDetailId, $request->validated('amount'))
+        );
     }
 }
