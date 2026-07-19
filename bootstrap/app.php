@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\UseAccessTokenFromCookie;
+use App\Http\Middleware\VerifyOutsiderToken;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(ForceJsonResponse::class);
         $middleware->api(prepend: [
             UseAccessTokenFromCookie::class,
+        ]);
+        $middleware->alias([
+            'outsider.auth' => VerifyOutsiderToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

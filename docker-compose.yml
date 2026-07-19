@@ -2,7 +2,7 @@ services:
     app:
         build:
             context: .
-            dockerfile: docker/php/Dockerfile
+            dockerfile: Docker/php/Dockerfile
         container_name: logistics_app
         restart: unless-stopped
         working_dir: /var/www/html
