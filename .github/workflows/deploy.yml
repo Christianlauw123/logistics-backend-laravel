@@ -1,0 +1,41 @@
+name: Deploy Application
+
+# Trigger this workflow every time you push code to the master branch
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy to Server via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        port: 22
+        script: |
+          cd /var/www/logistics-app/backend
+          
+          # 1. Clear out any accidental server file modifications
+          git reset --hard HEAD
+          git clean -fd
+          
+          # 2. Pull down your freshly pushed updates
+          git pull origin master
+          
+          # 3. Rebuild and deploy containers seamlessly
+          sudo docker compose build --no-cache app
+
+          # 4. Up Services
+          sudo docker compose up -d app
+          
+          # 4. Run Laravel framework optimizations
+          docker compose exec -T app php artisan migrate --force
+          sudo docker compose exec app php artisan config:clear
+          sudo docker compose exec app php artisan cache:clear
+          sudo docker compose exec -T app php artisan config:cache
+          sudo docker compose exec -T app php artisan route:cache
